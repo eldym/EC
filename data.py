@@ -119,6 +119,13 @@ class ecDataManip:
         db.cursor().execute("UPDATE users SET balance = %s WHERE uuid = %s", (newBal, uuid))
         db.commit()
 
+    def incrementUserBlockCount(uuid, type):
+        # Updates specific user's balance
+        db = ecDataGet.getDB()
+        if type == "pool": db.cursor().execute("UPDATE users SET pool_b = pool_b + 1 WHERE uuid = %s", (uuid))
+        else: db.cursor().execute("UPDATE users SET solo_b = solo_b + 1 WHERE uuid = %s", (uuid))
+        db.commit()
+
     def updateBlockTransactionId(transaction_id):
         # Updates the current block's 
         db = ecDataGet.getDB()
@@ -164,9 +171,14 @@ class ecCore:
         guess = random.randint(0,block[3])
         if guess < block[4]:
             if type == "pool":
-                # TODO
-                ecCore.transaction()
+                miners = ecDataGet.getPoolMiners()
+                for miner in miners:
+                    ecDataManip.incrementUserBlockCount(miner[1], 'pool')
+
+                    # TODO: Calculate payouts
+                    # ecCore.transaction("Coinbase", miner[1], block[3])
             elif type == "solo":
+                ecDataManip.incrementUserBlockCount(uuid, 'solo')
                 ecCore.transaction("Coinbase", uuid, block[3])
             ecDataManip.createBlock()
         else:

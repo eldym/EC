@@ -114,11 +114,18 @@ class ecDataManip:
         # Creates a log for a user's pool contribution
         db = ecDataGet.getDB()
         db.cursor().execute("INSERT INTO pool_b_data (block_number, miner, shares) VALUES (%s,%s,%s)", (int(ecDataGet.getCurrentBlock()[0]), uuid, 1))
+        db.commit()
     
     def createTransactionLog(send_uuid, recv_uuid, amount):
         # Creates a new transaction log
         db = ecDataGet.getDB()
-        db.cursor().execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (int(send_uuid), int(recv_uuid), amount, 0, int(time.time())))
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (int(send_uuid), int(recv_uuid), amount, 0, int(time.time())))
+        # Finds the transaction and returns it
+        cursor.execute("SELECT * FROM transactions WHERE id = (SELECT MAX(id) FROM transactions)")
+        for i in cursor: pass
+        db.commit()
+        return i
     
     def updateUserBal(uuid, newBal):
         # Updates specific user's balance
@@ -146,11 +153,13 @@ class ecDataManip:
             if enable:
                 db = ecDataGet.getDB()
                 db.cursor().execute("UPDATE users SET pooling = pooling + 1 WHERE uuid = %s", (uuid))
+                db.commit()
             else: return "You are already pool mining!"
         elif user[4] == 1:
             if not enable:
                 db = ecDataGet.getDB()
                 db.cursor().execute("UPDATE users SET pooling = pooling - 1 WHERE uuid = %s", (uuid))
+                db.commit()
             else: return "You are already solo mining!"
 
     def createBlock():
@@ -194,7 +203,7 @@ class ecCore:
     def transaction_aux(recv_uuid, send_uuid, sender, amount):
         recver = ecDataGet.getUser(recv_uuid)
         try: verify = recver[1]
-        except: return "User doesn't exist."
+        except: return False
         else:
             if send_uuid != "Coinbase": ecDataManip.updateUserBal(send_uuid, sender[1]-amount)
             ecDataManip.updateUserBal(recv_uuid, recver[1]+amount)

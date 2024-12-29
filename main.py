@@ -18,7 +18,7 @@ async def on_ready():
 async def create(ctx):
     if ecDataManip.createUser(ctx.author.id) is not False:
         await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
-        await balance(ctx, ctx.author.id)
+        await balance(ctx, str(ctx.author.id))
     else:
         await ctx.send("`Error!`\nYou already have an account!")
 
@@ -66,11 +66,10 @@ async def balance(ctx, *member):
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def send(ctx, reciever, amount):
     senderData = ecDataGet.getUser(ctx.author.id)
+    reciever = ''.join(reciever).strip('<@>')
+    recieverData = ecDataGet.getUser(reciever)
 
-    if senderData is not None:
-        reciever = ''.join(reciever).strip('<@>')
-        recieverData = ecDataGet.getUser(reciever)
-
+    if senderData is not None and reciever != str(ctx.author.id) and float(amount) >= 0.000001 and float(senderData[1]) >= float(amount):
         if recieverData is not None:
             # Confirmation
             await ctx.reply("Please say \'yes\' or \'y\' within 30 seconds to complete this transaction.")
@@ -80,21 +79,27 @@ async def send(ctx, reciever, amount):
             try: msg = await client.wait_for('message', check=check, timeout=30.0)
             except asyncio.TimeoutError: await ctx.reply("The transaction has been canceled.") # If timer runs out
             else: # If confirmation is made
-                reciept = str(ecCore.transaction(ctx.author.id, reciever, amount))
-                if reciept.isnumeric():
+                reciept = ecCore.transaction(ctx.author.id, reciever, amount)
+                if type(reciept) is tuple:
                     # Gets the reciever as a User object
                     reciever = await ctx.bot.fetch_user(reciever)
 
                     # Embed building
-                    embed=discord.Embed(title="Transaction Success!", color=EMB_COLOUR, timestamp=datetime.now())
-                    embed.add_field(name="Transaction ID", value=f"{reciept[0]}", inline=False)
-                    embed.add_field(name="Sender", value=f"{ctx.author.name}", inline=False)
-                    embed.add_field(name="Reciever", value=f"{reciever.name}", inline=False)
-                    embed.add_field(name="Fee", value=f"{reciept[3]}", inline=False)
+                    embed=discord.Embed(title="Transaction Success!", description=f"**{float(amount):.6f} {CURRENCY}** was sent to **{reciever.name}**.", color=EMB_COLOUR, timestamp=datetime.now())
+                    embed.add_field(name="Transaction ID", value=f"`{reciept[0]}`", inline=False)
+                    embed.add_field(name="Fee", value=f"`{reciept[4]}` {CURRENCY}", inline=False)
+                    embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
                     await ctx.reply(embed=embed)
                 else:
                     # If there is an error, prints out error to user
                     await ctx.reply(f"`Error!`\n{reciept}")
+        else: ctx.reply(f"`Error!`\nThis user does not exist! Please check if you mentionned or typed their Discord ID correctly!")
+    else:
+        if senderData is None: await ctx.reply(f"`Error!`\nYou do not have an account yet! Please run `!create` to start.")
+        elif reciever == str(ctx.author.id): await ctx.reply(f"`Error!`\nYou can't send money to yourself!")
+        elif float(amount) < 0.000001: await ctx.reply(f"`Error!`\nThe amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!")
+        elif float(senderData[1]) < float(amount): await ctx.reply(f"`Error!`\nYour balance is too low!")
+        else: await ctx.reply(f"`Error!`\n**Nobody here but us chickens!** If you found this error, please let eld know!")
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)
@@ -107,6 +112,7 @@ async def createMoney(ctx, amount):
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def createUser(ctx, uuid):
     if ctx.author.id == 395368734732189696:
+        uuid = ''.join(uuid).strip('<@>')
         ecDataManip.createUser(uuid)
         await ctx.reply(f'force created user balance')
 

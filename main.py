@@ -22,7 +22,8 @@ async def create(ctx):
     else:
         await ctx.send("`Error!`\nYou already have an account!")
 
-@client.hybrid_command(aliases=['b','bal','bank','wallet'])
+# @client.hybrid_command()
+@client.command(aliases=['b','bal','bank','wallet'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def balance(ctx, *member):
     member = ''.join(member).strip('<@>')
@@ -60,7 +61,8 @@ async def balance(ctx, *member):
                 await ctx.reply(f"`Error!`\nOop! Looks like {member.name} does not have an account!")
 
 
-@client.hybrid_command(aliases=['give','pay'])
+# @client.hybrid_command()
+@client.command(aliases=['pay', 'give'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def send(ctx, reciever, amount):
     senderData = ecDataGet.getUser(ctx.author.id)

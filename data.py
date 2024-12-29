@@ -207,7 +207,8 @@ class ecCore:
         else:
             if send_uuid != "Coinbase": ecDataManip.updateUserBal(send_uuid, sender[1]-amount)
             ecDataManip.updateUserBal(recv_uuid, recver[1]+amount)
-            ecDataManip.createTransactionLog(send_uuid, recv_uuid, amount)
+            reciept = ecDataManip.createTransactionLog(send_uuid, recv_uuid, amount)
+            return reciept
 
     def mine(uuid):
         block = ecDataGet.getCurrentBlock()

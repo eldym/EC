@@ -185,6 +185,7 @@ class ecCore:
 
     def transaction(send_uuid, recv_uuid, amount):
         sender = None
+        amount = float(amount)
         if send_uuid != "Coinbase": sender = ecDataGet.getUser(send_uuid)
 
         if send_uuid == "Coinbase" or float(sender[1]) >= amount:

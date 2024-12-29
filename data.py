@@ -207,8 +207,8 @@ class ecCore:
         try: verify = recver[1]
         except: return False
         else:
-            if send_uuid != "Coinbase": ecDataManip.updateUserBal(send_uuid, sender[1]-amount)
-            ecDataManip.updateUserBal(recv_uuid, recver[1]+amount)
+            if send_uuid != "Coinbase": ecDataManip.updateUserBal(send_uuid, float(sender[1])-amount)
+            ecDataManip.updateUserBal(recv_uuid, float(recver[1])+amount)
             reciept = ecDataManip.createTransactionLog(send_uuid, recv_uuid, amount)
             return reciept
 

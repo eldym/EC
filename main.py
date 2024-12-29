@@ -18,7 +18,7 @@ async def on_ready():
 async def create(ctx):
     if ecDataManip.createUser(ctx.author.id) is not False:
         await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
-        asyncio.run(balance(ctx, ctx.author.id))
+        await balance(ctx, ctx.author.id)
     else:
         await ctx.send("`Error!`\nYou already have an account!")
 
@@ -56,7 +56,7 @@ async def balance(ctx, *member):
             await ctx.reply(embed=embed)
         else:
             if defaulted or member.id == ctx.author.id: 
-                asyncio.run(create(ctx))
+                await create(ctx)
             else:
                 await ctx.reply(f"`Error!`\nOop! Looks like {member.name} does not have an account!")
 
@@ -96,7 +96,18 @@ async def send(ctx, reciever, amount):
                     # If there is an error, prints out error to user
                     await ctx.reply(f"`Error!`\n{reciept}")
 
+@client.command()
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def createMoney(ctx, amount):
+    if ctx.author.id == 395368734732189696:
+        ecDataManip.updateUserBal(ctx.author.id, amount)
+        await ctx.reply(f'generated {amount} funds')
 
-
+@client.command()
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def createUser(ctx, uuid):
+    if ctx.author.id == 395368734732189696:
+        ecDataManip.createUser(uuid)
+        await ctx.reply(f'force created user balance')
 
 client.run(TOKEN)

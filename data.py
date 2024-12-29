@@ -11,6 +11,7 @@ class ecDatabaseCreate:
         # Runs full creation sequence
         ecDatabaseCreate.sqlDBCreate()
         ecDatabaseCreate.sqlTablesCreate()
+        ecDataManip.createBlock()
         return "ran full create"
 
     def sqlDBCreate():

@@ -14,7 +14,8 @@ Please stay tuned for updates and eventual completion.
 A guide will later be provided *here* when the code is operational!
 
 Thanks!
-- eldym
+
+\- eldym
 
 # What's EC?
 

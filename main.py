@@ -80,7 +80,7 @@ async def send(ctx, reciever, amount):
             try: msg = await client.wait_for('message', check=check, timeout=30.0)
             except asyncio.TimeoutError: await ctx.reply("The transaction has been canceled.") # If timer runs out
             else: # If confirmation is made
-                reciept = str(ecCore.transaction(ctx.author.id, reciever))
+                reciept = str(ecCore.transaction(ctx.author.id, reciever, amount))
                 if reciept.isnumeric():
                     # Gets the reciever as a User object
                     reciever = await ctx.bot.fetch_user(reciever)

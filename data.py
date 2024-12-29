@@ -187,7 +187,7 @@ class ecCore:
         sender = None
         if send_uuid != "Coinbase": sender = ecDataGet.getUser(send_uuid)
 
-        if send_uuid == "Coinbase" or sender[1] >= amount:
+        if send_uuid == "Coinbase" or float(sender[1]) >= amount:
             if type(recv_uuid) is str:
                 reciept = ecCore.transaction_aux(recv_uuid, send_uuid, sender, amount)
             elif type(recv_uuid) is list and type(amount) is list:

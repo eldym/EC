@@ -18,7 +18,7 @@ async def on_ready():
 async def create(ctx):
     if ecDataManip.createUser(ctx.author.id) is not False:
         await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
-        balance(ctx, ctx.author.id)
+        asyncio.run(balance(ctx, ctx.author.id))
     else:
         await ctx.send("`Error!`\nYou already have an account!")
 
@@ -56,7 +56,7 @@ async def balance(ctx, *member):
             await ctx.reply(embed=embed)
         else:
             if defaulted or member.id == ctx.author.id: 
-                create(ctx)
+                asyncio.run(create(ctx))
             else:
                 await ctx.reply(f"`Error!`\nOop! Looks like {member.name} does not have an account!")
 

@@ -1,6 +1,4 @@
 from data import *
 
-# Startup
-ecDatabaseCreate.sqlDBCreate()
-ecDatabaseCreate.sqlTablesCreate()
-ecDataManip.createBlock()
+# One-time startup. As soon as this is completed, execute main.py.
+ecDatabaseCreate.fullCreate()

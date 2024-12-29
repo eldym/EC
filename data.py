@@ -29,13 +29,14 @@ class ecDatabaseCreate:
             cursor = db.cursor()
             cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL)")
             cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id int UNSIGNED NOT NULL, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, UNIQUE (id))")
-            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, transaction_id INT UNSIGNED, reward INT UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, reward INT UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
             cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_number INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL)")
 
 # Data getting
 class ecDataGet:
 
     def getDB():
+        # Gets the database
         try: db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS,database=DB_NAME)
         except: print(DB_CONN_ERROR); return Exception("`Error!`\nCannot connect to MySQL database.")
         else: return db
@@ -86,6 +87,7 @@ class ecDataGet:
         return block
     
     def getPoolMiners():
+        # Gets pool miner data
         db = ecDataGet.getDB()
         cursor = db.cursor()
         cursor.execute("SELECT * FROM pool_b_data")
@@ -107,8 +109,13 @@ class ecDataManip:
             db.commit()
             return ecDataGet.getUser(uuid)
         else: return False
+
+    def createPoolEffortLog(uuid):
+        # Creates a log for a user's pool contribution
+        db = ecDataGet.getDB()
+        db.cursor().execute("INSERT INTO pool_b_data (block_number, miner, shares) VALUES (%s,%s,%s)", (int(ecDataGet.getCurrentBlock()[0]), uuid, 1))
     
-    def createTransaction(send_uuid, recv_uuid, amount):
+    def createTransactionLog(send_uuid, recv_uuid, amount):
         # Creates a new transaction log
         db = ecDataGet.getDB()
         db.cursor().execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (int(send_uuid), int(recv_uuid), amount, 0, int(time.time())))
@@ -126,45 +133,72 @@ class ecDataManip:
         else: db.cursor().execute("UPDATE users SET solo_b = solo_b + 1 WHERE uuid = %s", (uuid))
         db.commit()
 
-    def updateBlockTransactionId(transaction_id):
-        # Updates the current block's 
+    def incrementPoolEffort(uuid):
+        # Updates specific user's effort in a pool
         db = ecDataGet.getDB()
-        block = ecDataGet.getCurrentBlock()
-        db.cursor().execute("UPDATE block SET transaction_id = %s WHERE block_number = %s", (transaction_id, block[0]))
+        db.cursor().execute("UPDATE pool_b_data SET shares = shares + 1 WHERE miner = %s", (uuid))
+        db.commit()
 
-    def createBlock(*startup):
+    def updateUserPoolingStatus(uuid, enable):
+        # Updates a user's mining status setting
+        user = ecDataGet.getUser(uuid)
+        if user[4] == 0:
+            if enable:
+                db = ecDataGet.getDB()
+                db.cursor().execute("UPDATE users SET pooling = pooling + 1 WHERE uuid = %s", (uuid))
+            else: return "You are already pool mining!"
+        elif user[4] == 1:
+            if not enable:
+                db = ecDataGet.getDB()
+                db.cursor().execute("UPDATE users SET pooling = pooling - 1 WHERE uuid = %s", (uuid))
+            else: return "You are already solo mining!"
+
+    def createBlock():
         # Creates a new block
-        if startup is True:
-            db = ecDataGet.getDB()
-            cursor = db.cursor()
-            cursor.execute("TRUNCATE TABLE pool_b_data")
-            reward = calculations.calculateReward()
-            diffMulti = calculations.calculateDifficultyMultiplier()
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute("TRUNCATE TABLE pool_b_data")
+        reward = calculations.calculateReward()
+        diffMulti = calculations.calculateDifficultyMultiplier()
 
-            diff = 100*diffMulti
-            cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD*diffMulti, int(time.time())))
-            db.commit()
-        else:
-            pass
+        diff = 100*diffMulti
+        cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD*diffMulti, int(time.time())))
+        db.commit()
+
+    def dbExecute(string, tuple):
+        # Only use for basic operations
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(string, tuple)
 
 class ecCore:
 
     def transaction(send_uuid, recv_uuid, amount):
-        if send_uuid != "Coinbase":
-            sender = ecDataGet.getUser(send_uuid)
-            if sender[1] >= amount:
-                recver = ecDataGet.getUser(recv_uuid)
-                try: verify = recver[1]
-                except: return "User doesn't exist."
-                else:
-                    ecDataManip.updateUserBal(send_uuid, sender[1]-amount)
-                    ecDataManip.updateUserBal(recv_uuid, recver[1]+amount)
-                    ecDataManip.createTransaction(send_uuid, recv_uuid, amount)
-            else: return "Your balance is too low."
+        sender = None
+        if send_uuid != "Coinbase": sender = ecDataGet.getUser(send_uuid)
+
+        if send_uuid == "Coinbase" or sender[1] >= amount:
+            if type(recv_uuid) is str:
+                reciept = ecCore.transaction_aux(recv_uuid, send_uuid, sender, amount)
+            elif type(recv_uuid) is list and type(amount) is list:
+                reciept = []
+                i = 0
+                while i < len(recv_uuid):
+                    reciept.append(ecCore.transaction_aux(recv_uuid[i], send_uuid, sender, amount[i]))
+                    i = i+1
+            else: return "Error"
+            return reciept
         else:
-            recver = ecDataGet.getUser(recv_uuid)
+            return "Your balance is too low."
+
+    def transaction_aux(recv_uuid, send_uuid, sender, amount):
+        recver = ecDataGet.getUser(recv_uuid)
+        try: verify = recver[1]
+        except: return "User doesn't exist."
+        else:
+            if send_uuid != "Coinbase": ecDataManip.updateUserBal(send_uuid, sender[1]-amount)
             ecDataManip.updateUserBal(recv_uuid, recver[1]+amount)
-            ecDataManip.createTransaction(send_uuid, recv_uuid, amount)
+            ecDataManip.createTransactionLog(send_uuid, recv_uuid, amount)
 
     def mine(uuid):
         block = ecDataGet.getCurrentBlock()
@@ -172,19 +206,16 @@ class ecCore:
         if guess < block[4]:
             if type == "pool":
                 miners = ecDataGet.getPoolMiners()
-                for miner in miners:
-                    ecDataManip.incrementUserBlockCount(miner[1], 'pool')
+                for miner in miners: ecDataManip.incrementUserBlockCount(miner[1], 'pool')
 
-                    # TODO: Calculate payouts
-                    # ecCore.transaction("Coinbase", miner[1], block[3])
+                
             elif type == "solo":
                 ecDataManip.incrementUserBlockCount(uuid, 'solo')
                 ecCore.transaction("Coinbase", uuid, block[3])
             ecDataManip.createBlock()
         else:
             if type == "pool":
-                # TODO
-                ecDataManip
+                ecDataManip.incrementPoolEffort(uuid)
         
 class calculations:
     def calculateDifficultyMultiplier():

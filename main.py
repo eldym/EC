@@ -116,7 +116,7 @@ async def transaction(ctx, id):
         embed.add_field(name="Time", value=f"<t:{transaction[5]}:f>", inline=False)
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
-    else: await ctx.reply(f"`Error!`\n")
+    else: await ctx.reply(f"`Error!`\nThis transaction does not exist!")
 
 # Test admin commands
 @client.command()

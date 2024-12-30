@@ -90,7 +90,7 @@ async def send(ctx, reciever, amount):
                 else:
                     # If there is an error, prints out error to user
                     await ctx.reply(f"`Error!`\n{reciept}")
-        else: ctx.reply(f"`Error!`\nThis user does not exist! Please check if you mentionned or typed their Discord ID correctly!")
+        else: await ctx.reply(f"`Error!`\nThis user does not exist! Please check if you mentionned or typed their Discord ID correctly!")
     else:
         # Reply error outs
         if senderData is None: await ctx.reply(f"`Error!`\nYou do not have an account yet! Please run `!create` to start.")

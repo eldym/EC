@@ -4,7 +4,7 @@ import asyncio
 from discord.ext import tasks, commands
 from data import *
 from datetime import datetime
-from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN
+from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK
 
 client = commands.Bot(command_prefix = PREFIXES , intents=discord.Intents.all(), help_command=None)
 
@@ -20,7 +20,7 @@ async def create(ctx):
         await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
         await balance(ctx, str(ctx.author.id))
     else:
-        await ctx.send("`Error!`\nYou already have an account!")
+        await ctx.send(embed=errorEmbed("You already have an account!"))
 
 @client.command(aliases=['b','bal','bank','wallet'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
@@ -57,9 +57,9 @@ async def balance(ctx, *member):
             if defaulted or member.id == ctx.author.id: 
                 await create(ctx)
             else:
-                await ctx.reply(f"`Error!`\nOop! Looks like {member.name} does not have an account!")
+                await ctx.reply(embed=errorEmbed("Oop! Looks like {member.name} does not have an account!"))
 
-@client.command(aliases=['pay', 'give'])
+@client.command(aliases=['p', 'pay', 'give'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def send(ctx, reciever, amount):
     senderData = ecDataGet.getUser(ctx.author.id)
@@ -90,14 +90,14 @@ async def send(ctx, reciever, amount):
                 else:
                     # If there is an error, prints out error to user
                     await ctx.reply(f"`Error!`\n{reciept}")
-        else: await ctx.reply(f"`Error!`\nThis user does not exist! Please check if you mentionned or typed their Discord ID correctly!")
+        else: await ctx.reply(embed=errorEmbed("This user does not exist! Please check if you mentionned or typed their Discord ID correctly!"))
     else:
         # Reply error outs
-        if senderData is None: await ctx.reply(f"`Error!`\nYou do not have an account yet! Please run `!create` to start.")
-        elif reciever == str(ctx.author.id): await ctx.reply(f"`Error!`\nYou can't send money to yourself!")
-        elif float(amount) < 0.000001: await ctx.reply(f"`Error!`\nThe amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!")
-        elif float(senderData[1]) < float(amount): await ctx.reply(f"`Error!`\nYour balance is too low!")
-        else: await ctx.reply(f"`Error!`\n**Nobody here but us chickens!** If you found this error, please let eld know!")
+        if senderData is None: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
+        elif reciever == str(ctx.author.id): await ctx.reply(embed=errorEmbed("You can't send money to yourself!"))
+        elif float(amount) < 0.000001: await ctx.reply(embed=errorEmbed(f"The amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!"))
+        elif float(senderData[1]) < float(amount): await ctx.reply(embed=errorEmbed("Your balance is too low!"))
+        else: await ctx.reply(embed=errorEmbed("**Nobody here but us chickens!** If you found this error, please let eld know!"))
 
 @client.command(aliases=['t', 'tran', 'log', 'reciept'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
@@ -108,7 +108,7 @@ async def transaction(ctx, id):
         sender = await ctx.bot.fetch_user(transaction[1])
         reciever = await ctx.bot.fetch_user(transaction[2])
         embed=discord.Embed(title=f"Transaction #{transaction[0]} Information", color=EMB_COLOUR)
-        embed.set_thumbnail(url=f'https://cdn.discordapp.com/attachments/791182073263685672/1323407110528172143/ec_spin.gif?ex=6774666a&is=677314ea&hm=c6e248a36175fcca642e241488ae733245f898c09f6ed22c2360c7045a474e6a')
+        embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
         embed.add_field(name="Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
         embed.add_field(name="Reciever", value=f"{reciever.name} (`{transaction[2]}`)", inline=False)
         embed.add_field(name="Amount", value=f"`{transaction[3]}` {CURRENCY}", inline=False)
@@ -116,7 +116,35 @@ async def transaction(ctx, id):
         embed.add_field(name="Time", value=f"<t:{transaction[5]}:f>", inline=False)
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
-    else: await ctx.reply(f"`Error!`\nThis transaction does not exist!")
+    else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
+
+@client.command(aliases=['bi', 'blockinfo'])
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def block(ctx, blockNo):
+    block = ecDataGet.getBlock(blockNo)
+    await ctx.reply(embed=blockEmbed(block))
+
+@client.command(aliases=['cb', 'current', 'currentblock'])
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def current_block(ctx):
+    curr = ecDataGet.getCurrentBlock()
+    await ctx.reply(embed=blockEmbed(curr))
+
+def blockEmbed(blockData):
+    # Generates block information embed
+    if blockData is not None:
+        embed=discord.Embed(title=f"Block #{blockData[0]} Information", description=f"{"*Current block!*" if blockData == ecDataGet.getCurrentBlock() else ""}", color=EMB_COLOUR)
+        embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
+        embed.add_field(name="Reward Amount", value=f"`{blockData[1]:.6f}` {CURRENCY}", inline=False)
+        embed.add_field(name="Difficulty", value=f"`{blockData[2]}`", inline=False)
+        embed.add_field(name="Diff. Threshold", value=f"`{blockData[3]}`", inline=False)
+        embed.add_field(name="Block Creation Time", value=f"<t:{blockData[4]}:f>", inline=False)
+        return embed
+    else: return errorEmbed("This block does not exist!")
+
+def errorEmbed(errorMsg):
+    # Generates the error message embed
+    return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR)
 
 # Test admin commands
 @client.command()

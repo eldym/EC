@@ -76,8 +76,19 @@ class ecDataGet:
 
         return block
     
+    def getTransaction(id):
+        # Get specific transaction data
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM transactions WHERE id = {id}")
+
+        transaction = None
+        for transaction in cursor: pass
+
+        return transaction
+    
     def getCurrentBlock():
-        # Get specific block data
+        # Get current block data
         db = ecDataGet.getDB()
         cursor = db.cursor()
         cursor.execute("SELECT * FROM block WHERE block_number = (SELECT MAX(block_number) FROM block)")

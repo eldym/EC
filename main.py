@@ -22,7 +22,6 @@ async def create(ctx):
     else:
         await ctx.send("`Error!`\nYou already have an account!")
 
-# @client.hybrid_command()
 @client.command(aliases=['b','bal','bank','wallet'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def balance(ctx, *member):
@@ -60,8 +59,6 @@ async def balance(ctx, *member):
             else:
                 await ctx.reply(f"`Error!`\nOop! Looks like {member.name} does not have an account!")
 
-
-# @client.hybrid_command()
 @client.command(aliases=['pay', 'give'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def send(ctx, reciever, amount):
@@ -95,12 +92,33 @@ async def send(ctx, reciever, amount):
                     await ctx.reply(f"`Error!`\n{reciept}")
         else: ctx.reply(f"`Error!`\nThis user does not exist! Please check if you mentionned or typed their Discord ID correctly!")
     else:
+        # Reply error outs
         if senderData is None: await ctx.reply(f"`Error!`\nYou do not have an account yet! Please run `!create` to start.")
         elif reciever == str(ctx.author.id): await ctx.reply(f"`Error!`\nYou can't send money to yourself!")
         elif float(amount) < 0.000001: await ctx.reply(f"`Error!`\nThe amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!")
         elif float(senderData[1]) < float(amount): await ctx.reply(f"`Error!`\nYour balance is too low!")
         else: await ctx.reply(f"`Error!`\n**Nobody here but us chickens!** If you found this error, please let eld know!")
 
+@client.command(aliases=['t', 'tran', 'log', 'reciept'])
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def transaction(ctx, id):
+    transaction = ecDataGet.getTransaction(id)
+
+    if transaction is not None:
+        sender = await ctx.bot.fetch_user(transaction[1])
+        reciever = await ctx.bot.fetch_user(transaction[2])
+        embed=discord.Embed(title=f"Transaction #{transaction[0]} Information", color=EMB_COLOUR)
+        embed.set_thumbnail(url=f'https://cdn.discordapp.com/attachments/791182073263685672/1323407110528172143/ec_spin.gif?ex=6774666a&is=677314ea&hm=c6e248a36175fcca642e241488ae733245f898c09f6ed22c2360c7045a474e6a')
+        embed.add_field(name="Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
+        embed.add_field(name="Reciever", value=f"{reciever.name} (`{transaction[2]}`)", inline=False)
+        embed.add_field(name="Amount", value=f"`{transaction[3]}` {CURRENCY}", inline=False)
+        embed.add_field(name="Fee", value=f"`{transaction[4]}` {CURRENCY}", inline=False)
+        embed.add_field(name="Time", value=f"<t:{transaction[5]}:f>", inline=False)
+        embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
+        await ctx.reply(embed=embed)
+    else: await ctx.reply(f"`Error!`\n")
+
+# Test admin commands
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def createMoney(ctx, amount):

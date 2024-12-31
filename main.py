@@ -101,6 +101,7 @@ async def send(ctx, reciever, amount):
 
 @client.command(aliases=['t', 'tran', 'log', 'reciept'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
+
 async def transaction(ctx, id):
     transaction = ecDataGet.getTransaction(id)
 
@@ -117,6 +118,12 @@ async def transaction(ctx, id):
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
+
+@client.command(aliases=['m'])
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def mine(ctx):
+    # TODO!!
+    pass
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)

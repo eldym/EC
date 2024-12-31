@@ -148,31 +148,24 @@ class ecDataManip:
     def incrementUserBlockCount(uuid, type):
         # Updates specific user's balance
         db = ecDataGet.getDB()
-        if type == "pool": db.cursor().execute("UPDATE users SET pool_b = pool_b + 1 WHERE uuid = %s", (uuid))
-        else: db.cursor().execute("UPDATE users SET solo_b = solo_b + 1 WHERE uuid = %s", (uuid))
+        if type == "pool": db.cursor().execute(f"UPDATE users SET pool_b = pool_b + 1 WHERE uuid = {uuid}")
+        else: db.cursor().execute(f"UPDATE users SET solo_b = solo_b + 1 WHERE uuid = {uuid}")
         db.commit()
 
     def incrementPoolEffort(uuid):
         # Updates specific user's effort in a pool
         db = ecDataGet.getDB()
-        db.cursor().execute("UPDATE pool_b_data SET shares = shares + 1 WHERE miner = %s", (uuid))
+        db.cursor().execute(f"UPDATE pool_b_data SET shares = shares + 1 WHERE miner = {uuid}")
         db.commit()
 
-    def updateUserPoolingStatus(uuid, enable):
+    def updateUserPoolingStatus(uuid):
         # Updates a user's mining status setting
         user = ecDataGet.getUser(uuid)
-        if user[4] == 0:
-            if enable:
-                db = ecDataGet.getDB()
-                db.cursor().execute("UPDATE users SET pooling = pooling + 1 WHERE uuid = %s", (uuid))
-                db.commit()
-            else: return "You are already pool mining!"
-        elif user[4] == 1:
-            if not enable:
-                db = ecDataGet.getDB()
-                db.cursor().execute("UPDATE users SET pooling = pooling - 1 WHERE uuid = %s", (uuid))
-                db.commit()
-            else: return "You are already solo mining!"
+        db = ecDataGet.getDB()
+        if user[4] == 0: db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
+        elif user[4] == 1: db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
+        db.commit()
+        return "Pool" if user[4] == 0 else "Solo"
 
     def createBlock():
         # Creates a new block

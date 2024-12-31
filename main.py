@@ -57,7 +57,7 @@ async def balance(ctx, *member):
             if defaulted or member.id == ctx.author.id: 
                 await create(ctx)
             else:
-                await ctx.reply(embed=errorEmbed("Oop! Looks like {member.name} does not have an account!"))
+                await ctx.reply(embed=errorEmbed(f"Oop! Looks like {member.name} does not have an account!"))
 
 @client.command(aliases=['p', 'pay', 'give'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
@@ -117,6 +117,15 @@ async def transaction(ctx, id):
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
+
+@client.command()
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def switch(ctx):
+    if ecDataGet.getUser(ctx.author.id) is not None:
+        result = ecDataManip.updateUserPoolingStatus(ctx.author.id)
+        embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR)
+        await ctx.reply(embed=embed)
+    else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command(aliases=['bi', 'blockinfo'])
 @commands.cooldown(1, 2, commands.BucketType.guild)

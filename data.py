@@ -184,9 +184,8 @@ class ecDataManip:
         cursor = db.cursor()
         cursor.execute("TRUNCATE TABLE pool_b_data")
         reward = calculations.calculateReward()
-        diffMulti = calculations.calculateDifficultyMultiplier()
+        diff = calculations.calculateDifficulty()
 
-        diff = 100*diffMulti
         cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD, int(time.time())))
         db.commit()
 
@@ -211,7 +210,7 @@ class ecCore:
                 i = 0
                 while i < len(recv_uuid):
                     reciept.append(ecCore.transaction_aux(recv_uuid[i], send_uuid, sender, amount[i]))
-                    i = i+1
+                    i += 1
             else: return "Error"
             return reciept
         else:
@@ -256,7 +255,7 @@ class ecCore:
         return guess, reciept
         
 class calculations:
-    def calculateDifficultyMultiplier():
+    def calculateDifficulty():
         curr = ecDataGet.getCurrentBlock()
 
         if curr is not None and curr[0] >= 289:
@@ -264,19 +263,22 @@ class calculations:
             prev = ecDataGet.getBlock(curr[0]-1)
             farPrev = ecDataGet.getBlock(curr[0]-288)
 
+            # Gets the total of Unix seconds between previous block and 288 blocks before
+            i = 1
+            while i < 289:
+                totalTime = ecDataGet.getBlock(curr[0]-i)
+                i += 1
+
             # Observed time (s) taken to mine 288 blocks
-            obsMineTime = prev[4] - farPrev[4]
+            averageTime = totalTime/288
 
             # Expected time (s) taken to mine 288 blocks
             expMineTime = 86400
 
-            # Calculate how much change should be applied to reach target time
-            if obsMineTime/expMineTime < 1:
-                return 1 + abs(1-(obsMineTime/expMineTime))
-            elif obsMineTime/expMineTime == 1:
-                return 1
-            else:
-                return 1 - (obsMineTime/expMineTime)
+            # Smooths out difficulty increase to prevent extreme difficulty change shock
+            if (expMineTime/averageTime) > 2: return prev[2]*2
+            elif (expMineTime/averageTime) < 1/2: return prev[2]*(1/2)
+            else: return prev[2]*(expMineTime/averageTime)
         else:
             return 1
         

@@ -111,6 +111,16 @@ class ecDataGet:
         for miner in cursor: pass
         return miner
     
+    def getSupply():
+        # Gets the total amount of shares
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute("SELECT SUM(balance) FROM users")
+
+        data = None
+        for data in cursor: pass
+        return data
+
     def getPoolShareSum():
         # Gets the total amount of shares
         db = ecDataGet.getDB()
@@ -270,7 +280,7 @@ class calculations:
                 i += 1
 
             # Observed time (s) taken to mine 288 blocks
-            averageTime = totalTime/288
+            averageTime = sum(totalTime)/288
 
             # Expected time (s) taken to mine 288 blocks
             expMineTime = 86400

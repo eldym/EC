@@ -125,6 +125,12 @@ async def transaction(ctx, id):
     # If transaction doesn't exist, throw error embed
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
 
+@client.command(aliases=['s'])
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def supply(ctx):
+    # Gives the user the supply of currency
+    await ctx.reply(f"There is currently {ecDataGet.getSupply()[0]} {CURRENCY} in supply.")
+
 @client.command(aliases=['m', 'M'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def mine(ctx):
@@ -141,9 +147,9 @@ async def mine(ctx):
             # Pool share submission
             if userData[4]==1:
                 embed=discord.Embed(title="Submitted share to pool!", description="Your contribution has been logged to the pool!", color=EMB_COLOUR, timestamp=datetime.now())
-                embed.add_field(name="Shares Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
-                embed.add_field(name="Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
-                embed.add_field(name="Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
+                embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
+                embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
+                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
             # Solo attempt
             else:
                 embed=discord.Embed(title="Guess was unsuccessful!", description="Please try again!", color=EMB_COLOUR, timestamp=datetime.now())
@@ -172,7 +178,7 @@ async def mine(ctx):
             await channel.send(embed=channelEmbed)
 
         # Shows the miner the guess they made and replies
-        embed.add_field(name="Your Guess", value=f"`{guess}`", inline=False)
+        embed.add_field(name="⛏️ Your Guess", value=f"`{guess}`", inline=False)
         await ctx.reply(embed=embed)
     
     # If user doesn't exist, throw error embed
@@ -221,12 +227,13 @@ def errorEmbed(errorMsg):
     return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR)
 
 # Test admin commands
-@client.command()
+@client.command(aliases=['eb'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
-async def createMoney(ctx, amount):
+async def editBal(ctx, uuid, amount):
     if ctx.author.id == 395368734732189696:
-        ecDataManip.updateUserBal(ctx.author.id, amount)
-        await ctx.reply(f'generated {amount} funds')
+        uuid = ''.join(uuid).strip('<@>')
+        ecDataManip.updateUserBal(uuid, float(ecDataGet.getUser(uuid)[1]) + float(amount))
+        await ctx.reply(f'updated user funds by: {amount} {CURRENCY}')
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)

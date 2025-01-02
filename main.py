@@ -4,7 +4,7 @@ import asyncio
 from discord.ext import tasks, commands
 from data import *
 from datetime import datetime
-from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK
+from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL
 
 client = commands.Bot(command_prefix = PREFIXES , intents=discord.Intents.all(), help_command=None)
 
@@ -127,30 +127,56 @@ async def mine(ctx):
     userData = ecDataGet.getUser(ctx.author.id)
     currBlock = ecDataGet.getCurrentBlock()
 
+    # First, check if the user exists
     if userData is not None:
+        # Run the mine function to recieve results of mining
         guess, reciept = ecCore.mine(ctx.author.id)
+        
+        # If the guess was unsuccessful - womp womp
         if reciept is None:
+            # Pool share submission
             if userData[4]==1:
                 embed=discord.Embed(title="Submitted share to pool!", description="Your contribution has been logged to the pool!", color=EMB_COLOUR, timestamp=datetime.now())
                 embed.add_field(name="Shares Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
                 embed.add_field(name="Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
                 embed.add_field(name="Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
+            # Solo attempt
             else:
                 embed=discord.Embed(title="Guess was unsuccessful!", description="Please try again!", color=EMB_COLOUR, timestamp=datetime.now())
+
+        # If the guess was successful - payout
         else:
+            # Congratulatory embed building
             embed=discord.Embed(title="You broke the block!", description="The rewards have been distributed!", color=EMB_COLOUR, timestamp=datetime.now())
+            # Pool payout
             if type(reciept) is list:
                 i = 0
-                recieptListString = ""
-                embed.add_field(name="Coinbase Transaction Reciept IDs", value=f"`{reciept[0]}`", inline=False)
+                ids = []
+                while i < len(reciept):
+                    ids.append(reciept[i][0])
+                    i = i + 1
+                embed.add_field(name="Coinbase Transaction Reciept IDs", value=f"`{ids}`", inline=False)
+            # Solo payout
             else: embed.add_field(name="Coinbase Transaction Reciept ID", value=f"`{reciept[0]}` ", inline=False)
+
+            # Broadcasts to a channel that a block was broken
+            channel = client.get_channel(OUTPUT_CHANNEL)
+            channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=0x000000)
+            channelEmbed.add_field(name='Breaker', value=f'{ctx.author.name} (`{ctx.author.id}`)', inline=False)
+            channelEmbed.add_field(name='Transaction ID(s)', value=f'{reciept[0]}', inline=False)
+            await channel.send(embed=channelEmbed)
+
+        # Shows the miner the guess they made and replies
         embed.add_field(name="Your Guess", value=f"`{guess}`", inline=False)
         await ctx.reply(embed=embed)
+    
+    # If user doesn't exist, just throw error embed
     else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def switch(ctx):
+    # Switches the user's pooling status
     if ecDataGet.getUser(ctx.author.id) is not None:
         result = ecDataManip.updateUserPoolingStatus(ctx.author.id)
         embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR)
@@ -160,12 +186,14 @@ async def switch(ctx):
 @client.command(aliases=['bi', 'blockinfo'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def block(ctx, blockNo):
+    # Gives the user the block data
     block = ecDataGet.getBlock(blockNo)
     await ctx.reply(embed=blockEmbed(block))
 
 @client.command(aliases=['cb', 'current', 'currentblock'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def current_block(ctx):
+    # Gives the user the current block data
     curr = ecDataGet.getCurrentBlock()
     await ctx.reply(embed=blockEmbed(curr))
 
@@ -176,6 +204,7 @@ def blockEmbed(blockData):
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
         embed.add_field(name="Reward Amount", value=f"`{blockData[1]:.6f}` {CURRENCY}", inline=False)
         embed.add_field(name="Difficulty", value=f"`{blockData[2]}`", inline=False)
+        if blockData == ecDataGet.getCurrentBlock(): embed.add_field(name="Current Pool Effort", value=f"{ecDataGet.getPoolShareSum()} Shares", inline=False)
         embed.add_field(name="Diff. Threshold", value=f"`{blockData[3]}`", inline=False)
         embed.add_field(name="Block Creation Time", value=f"<t:{blockData[4]}:f>", inline=False)
         return embed

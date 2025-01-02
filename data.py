@@ -262,10 +262,10 @@ class calculations:
         if curr is not None and curr[0] >= 289:
             # Get data points
             prev = ecDataGet.getBlock(curr[0]-1)
-            farPrev = ecDataGet.getBlock(curr[0]-289)
+            farPrev = ecDataGet.getBlock(curr[0]-288)
 
             # Observed time (s) taken to mine 288 blocks
-            obsMineTime = prev[5] - farPrev[5]
+            obsMineTime = prev[4] - farPrev[4]
 
             # Expected time (s) taken to mine 288 blocks
             expMineTime = 86400

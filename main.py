@@ -106,7 +106,9 @@ async def send(ctx, reciever, amount):
 async def transaction(ctx, id):
     transaction = ecDataGet.getTransaction(id)
 
+    # Checks if transaction exists
     if transaction is not None:
+        # Embed building
         if transaction[1] != "Coinbase": sender = await ctx.bot.fetch_user(transaction[1])
         reciever = await ctx.bot.fetch_user(transaction[2])
         embed=discord.Embed(title=f"Transaction #{transaction[0]} Information", color=EMB_COLOUR)
@@ -119,6 +121,8 @@ async def transaction(ctx, id):
         embed.add_field(name="Time", value=f"<t:{transaction[5]}:f>", inline=False)
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
+    
+    # If transaction doesn't exist, throw error embed
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
 
 @client.command(aliases=['m', 'M'])
@@ -163,14 +167,15 @@ async def mine(ctx):
             channel = client.get_channel(OUTPUT_CHANNEL)
             channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=0x000000)
             channelEmbed.add_field(name='Breaker', value=f'{ctx.author.name} (`{ctx.author.id}`)', inline=False)
-            channelEmbed.add_field(name='Transaction ID(s)', value=f'{reciept[0]}', inline=False)
+            if type(reciept) is list: channelEmbed.add_field(name='Transaction IDs', value=f'{ids}', inline=False)
+            else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)
             await channel.send(embed=channelEmbed)
 
         # Shows the miner the guess they made and replies
         embed.add_field(name="Your Guess", value=f"`{guess}`", inline=False)
         await ctx.reply(embed=embed)
     
-    # If user doesn't exist, just throw error embed
+    # If user doesn't exist, throw error embed
     else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command()

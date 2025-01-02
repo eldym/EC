@@ -16,11 +16,9 @@ class ecDatabaseCreate:
 
     def sqlDBCreate():
         # Creates the MySQL Database (if it doesn't already exist)
-        try: db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS)
-        except: print(DB_CONN_ERROR)
-        else:
-            cursor = db.cursor()
-            cursor.execute("CREATE DATABASE IF NOT EXISTS ecdata")
+        db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS)
+        cursor = db.cursor()
+        cursor.execute("CREATE DATABASE IF NOT EXISTS ecdata")
 
     def sqlTablesCreate():
         # Creates the users and transactions tables (if they don't already exist)
@@ -30,7 +28,7 @@ class ecDatabaseCreate:
             cursor = db.cursor()
             cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL)")
             cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id int UNSIGNED NOT NULL AUTO_INCREMENT, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, UNIQUE (id))")
-            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, reward INT UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, reward DECIMAL(18,6) UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
             cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_number INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL)")
 
 # Data getting
@@ -38,9 +36,8 @@ class ecDataGet:
 
     def getDB():
         # Gets the database
-        try: db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS,database=DB_NAME)
-        except: print(DB_CONN_ERROR); return Exception("`Error!`\nCannot connect to MySQL database.")
-        else: return db
+        db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS,database=DB_NAME)
+        return db
     
     def getAllUsers():
         # Get all user data
@@ -51,7 +48,6 @@ class ecDataGet:
         users = []
         for user in cursor:
             users.append(user)
-
         return users
 
     def getUser(uuid):
@@ -62,7 +58,6 @@ class ecDataGet:
         
         user = None
         for user in cursor: pass
-
         return user
     
     def getBlock(blockNo):
@@ -73,7 +68,6 @@ class ecDataGet:
 
         block = None
         for block in cursor: pass
-
         return block
     
     def getTransaction(id):
@@ -84,7 +78,6 @@ class ecDataGet:
 
         transaction = None
         for transaction in cursor: pass
-
         return transaction
     
     def getCurrentBlock():
@@ -95,7 +88,6 @@ class ecDataGet:
 
         block = None
         for block in cursor: pass
-
         return block
     
     def getPoolMiners():
@@ -107,8 +99,27 @@ class ecDataGet:
         miners = []
         for miner in cursor:
             miners.append(miner)
-
         return miners
+    
+    def getPoolMiner(uuid):
+        # Gets individual pool miner data
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM pool_b_data WHERE miner = {uuid}")
+
+        miner = None
+        for miner in cursor: pass
+        return miner
+    
+    def getPoolShareSum():
+        # Gets the total amount of shares
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute("SELECT SUM(shares) FROM pool_b_data")
+
+        data = None
+        for data in cursor: pass
+        return data
     
 # Data manipulating
 class ecDataManip:
@@ -132,7 +143,7 @@ class ecDataManip:
         # Creates a new transaction log
         db = ecDataGet.getDB()
         cursor = db.cursor()
-        cursor.execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (int(send_uuid), int(recv_uuid), amount, 0, int(time.time())))
+        cursor.execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (send_uuid, recv_uuid, amount, 0, int(time.time())))
         # Finds the transaction and returns it
         cursor.execute("SELECT * FROM transactions WHERE id = (SELECT MAX(id) FROM transactions)")
         for i in cursor: pass
@@ -195,7 +206,7 @@ class ecCore:
         if send_uuid == "Coinbase" or float(sender[1]) >= amount:
             if type(recv_uuid) is str:
                 reciept = ecCore.transaction_aux(recv_uuid, send_uuid, sender, amount)
-            elif type(recv_uuid) is list and type(amount) is list:
+            elif type(recv_uuid) is list and type(amount) is list: # WIP
                 reciept = []
                 i = 0
                 while i < len(recv_uuid):
@@ -218,20 +229,31 @@ class ecCore:
 
     def mine(uuid):
         block = ecDataGet.getCurrentBlock()
-        guess = random.randint(0,block[3])
-        if guess < block[4]:
-            if type == "pool":
-                miners = ecDataGet.getPoolMiners()
-                for miner in miners: ecDataManip.incrementUserBlockCount(miner[1], 'pool')
+        pooling = ecDataGet.getUser(uuid)[4]
+        guess = random.randint(0,block[2])
+        reciept = None
 
-                
-            elif type == "solo":
-                ecDataManip.incrementUserBlockCount(uuid, 'solo')
-                ecCore.transaction("Coinbase", uuid, block[3])
+        if pooling == 1:
+            if ecDataGet.getPoolMiner(uuid) is not None: ecDataManip.incrementPoolEffort(str(uuid))
+            else: ecDataManip.createPoolEffortLog(uuid)
+        
+        if guess < block[3]: # broken block procedure
+            if pooling == 1: # pool
+                reciept = []
+                miners = ecDataGet.getPoolMiners()
+                summed = ecDataGet.getPoolShareSum()
+                print(summed)
+                for miner in miners:
+                    ecDataManip.incrementUserBlockCount(miner[1], 'pool')
+                    result = ecCore.transaction("Coinbase", miner[1], block[1]*(miner[2]/summed[0]))
+                    print(result)
+                    reciept.append(result)
+            elif pooling == 0: # solo
+                ecDataManip.incrementUserBlockCount(str(uuid), 'solo')
+                reciept = ecCore.transaction("Coinbase", str(uuid), block[1])
             ecDataManip.createBlock()
-        else:
-            if type == "pool":
-                ecDataManip.incrementPoolEffort(uuid)
+            
+        return guess, reciept
         
 class calculations:
     def calculateDifficultyMultiplier():

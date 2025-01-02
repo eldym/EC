@@ -51,6 +51,7 @@ async def balance(ctx, *member):
             embed.add_field(name="💵 Currency", value=f"{userData[1]} {CURRENCY}", inline=False)
             embed.add_field(name="☑️ Pool Blocks", value=f"{userData[2]:,} block{bGrammar1} broken", inline=False)
             embed.add_field(name="☑️ Solo Blocks", value=f"{userData[3]:,} block{bGrammar2} broken", inline=False)
+            embed.add_field(name="☑️ Pooling", value=f"{"TRUE" if userData[4] == 1 else "FALSE"}", inline=False)
             embed.set_footer(text="Bot made with ❤️ by eld_!")
             await ctx.reply(embed=embed)
         else:
@@ -106,11 +107,12 @@ async def transaction(ctx, id):
     transaction = ecDataGet.getTransaction(id)
 
     if transaction is not None:
-        sender = await ctx.bot.fetch_user(transaction[1])
+        if transaction[1] != "Coinbase": sender = await ctx.bot.fetch_user(transaction[1])
         reciever = await ctx.bot.fetch_user(transaction[2])
         embed=discord.Embed(title=f"Transaction #{transaction[0]} Information", color=EMB_COLOUR)
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
-        embed.add_field(name="Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
+        if transaction[1] != "Coinbase": embed.add_field(name="Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
+        else: embed.add_field(name="Sender", value=f"Coinbase", inline=False)
         embed.add_field(name="Reciever", value=f"{reciever.name} (`{transaction[2]}`)", inline=False)
         embed.add_field(name="Amount", value=f"`{transaction[3]}` {CURRENCY}", inline=False)
         embed.add_field(name="Fee", value=f"`{transaction[4]}` {CURRENCY}", inline=False)
@@ -119,11 +121,32 @@ async def transaction(ctx, id):
         await ctx.reply(embed=embed)
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
 
-@client.command(aliases=['m'])
+@client.command(aliases=['m', 'M'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def mine(ctx):
-    # TODO!!
-    pass
+    userData = ecDataGet.getUser(ctx.author.id)
+    currBlock = ecDataGet.getCurrentBlock()
+
+    if userData is not None:
+        guess, reciept = ecCore.mine(ctx.author.id)
+        if reciept is None:
+            if userData[4]==1:
+                embed=discord.Embed(title="Submitted share to pool!", description="Your contribution has been logged to the pool!", color=EMB_COLOUR, timestamp=datetime.now())
+                embed.add_field(name="Shares Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
+                embed.add_field(name="Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
+                embed.add_field(name="Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
+            else:
+                embed=discord.Embed(title="Guess was unsuccessful!", description="Please try again!", color=EMB_COLOUR, timestamp=datetime.now())
+        else:
+            embed=discord.Embed(title="You broke the block!", description="The rewards have been distributed!", color=EMB_COLOUR, timestamp=datetime.now())
+            if type(reciept) is list:
+                i = 0
+                recieptListString = ""
+                embed.add_field(name="Coinbase Transaction Reciept IDs", value=f"`{reciept[0]}`", inline=False)
+            else: embed.add_field(name="Coinbase Transaction Reciept ID", value=f"`{reciept[0]}` ", inline=False)
+        embed.add_field(name="Your Guess", value=f"`{guess}`", inline=False)
+        await ctx.reply(embed=embed)
+    else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)

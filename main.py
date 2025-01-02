@@ -209,9 +209,10 @@ def blockEmbed(blockData):
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
         embed.add_field(name="Reward Amount", value=f"`{blockData[1]:.6f}` {CURRENCY}", inline=False)
         embed.add_field(name="Difficulty", value=f"`{blockData[2]}`", inline=False)
-        if blockData == ecDataGet.getCurrentBlock(): embed.add_field(name="Current Pool Effort", value=f"{ecDataGet.getPoolShareSum()} Shares", inline=False)
+        if blockData == ecDataGet.getCurrentBlock(): embed.add_field(name="Current Pool Effort", value=f"{ecDataGet.getPoolShareSum()[0]} Shares", inline=False)
         embed.add_field(name="Diff. Threshold", value=f"`{blockData[3]}`", inline=False)
         embed.add_field(name="Block Creation Time", value=f"<t:{blockData[4]}:f>", inline=False)
+        embed.add_field(name="Block Creation Time Unix", value=f"`{blockData[4]}`", inline=False)
         return embed
     else: return errorEmbed("This block does not exist!")
 
@@ -234,5 +235,4 @@ async def createUser(ctx, uuid):
         uuid = ''.join(uuid).strip('<@>')
         ecDataManip.createUser(uuid)
         await ctx.reply(f'force created user balance')
-
 client.run(TOKEN)

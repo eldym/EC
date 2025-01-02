@@ -187,7 +187,7 @@ class ecDataManip:
         diffMulti = calculations.calculateDifficultyMultiplier()
 
         diff = 100*diffMulti
-        cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD*diffMulti, int(time.time())))
+        cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD, int(time.time())))
         db.commit()
 
     def dbExecute(string, tuple):

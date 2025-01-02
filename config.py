@@ -14,7 +14,7 @@ DB_PASS = 'root'
 DB_NAME = 'ecdata'
 
 # General config
-ERROR_TXT = '\033[31mError!\033[0m'
+ERROR_TXT = 'Error!'
 START_DIFF = 100
 START_DIFF_THRESHOLD = 10
 START_REWARD = 500

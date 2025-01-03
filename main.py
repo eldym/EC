@@ -165,9 +165,9 @@ async def mine(ctx):
                 while i < len(reciept):
                     ids.append(reciept[i][0])
                     i = i + 1
-                embed.add_field(name="Coinbase Transaction Reciept IDs", value=f"`{ids}`", inline=False)
+                embed.add_field(name="🧾 Coinbase Transaction Reciept IDs", value=f"`{ids}`", inline=False)
             # Solo payout
-            else: embed.add_field(name="Coinbase Transaction Reciept ID", value=f"`{reciept[0]}` ", inline=False)
+            else: embed.add_field(name="🧾Coinbase Transaction Reciept ID", value=f"`{reciept[0]}` ", inline=False)
 
             # Broadcasts to a channel that a block was broken
             channel = client.get_channel(OUTPUT_CHANNEL)
@@ -213,12 +213,12 @@ def blockEmbed(blockData):
     if blockData is not None:
         embed=discord.Embed(title=f"Block #{blockData[0]} Information", description=f"{"*Current block!*" if blockData == ecDataGet.getCurrentBlock() else ""}", color=EMB_COLOUR)
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
-        embed.add_field(name="Reward Amount", value=f"`{blockData[1]:.6f}` {CURRENCY}", inline=False)
-        embed.add_field(name="Difficulty", value=f"`{blockData[2]}`", inline=False)
-        if blockData == ecDataGet.getCurrentBlock(): embed.add_field(name="Current Pool Effort", value=f"{ecDataGet.getPoolShareSum()[0]} Shares", inline=False)
-        embed.add_field(name="Diff. Threshold", value=f"`{blockData[3]}`", inline=False)
-        embed.add_field(name="Block Creation Time", value=f"<t:{blockData[4]}:f>", inline=False)
-        embed.add_field(name="Block Creation Time Unix", value=f"`{blockData[4]}`", inline=False)
+        embed.add_field(name="💵 Reward Amount", value=f"`{blockData[1]:.6f}` {CURRENCY}", inline=False)
+        embed.add_field(name="⚒️ Difficulty", value=f"`{blockData[2]}`", inline=False)
+        if blockData == ecDataGet.getCurrentBlock(): embed.add_field(name="🌎 Current Pool Effort", value=f"{ecDataGet.getPoolShareSum()[0]} Shares", inline=False)
+        embed.add_field(name="📊 Diff. Threshold", value=f"`{blockData[3]}`", inline=False)
+        embed.add_field(name="⌛ Block Creation Time", value=f"<t:{blockData[4]}:f>", inline=False)
+        embed.add_field(name="⏲️ Block Creation Time Unix", value=f"`{blockData[4]}`", inline=False)
         return embed
     else: return errorEmbed("This block does not exist!")
 
@@ -226,7 +226,7 @@ def errorEmbed(errorMsg):
     # Generates the error message embed
     return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR)
 
-# Test admin commands
+# Admin commands
 @client.command(aliases=['eb'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def editBal(ctx, uuid, amount):

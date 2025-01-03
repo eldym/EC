@@ -285,10 +285,17 @@ class calculations:
             # Expected time (s) taken to mine 288 blocks
             expMineTime = 86400
 
+            # Print calculations to console for checking
+            print('Block Completed! Here are the next block\'s statistics:')
+            print('Averaged time (s):',averageTime)
+            print('Expected time (s):',expMineTime)
+            print('Deviation from average:', expMineTime/averageTime)
+            print()
+
             # Smooths out difficulty increase to prevent extreme difficulty change shock
-            if (expMineTime/averageTime) > 2: return prev[2]*2
-            elif (expMineTime/averageTime) < 1/2: return prev[2]*(1/2)
-            else: return prev[2]*(expMineTime/averageTime)
+            if (expMineTime/averageTime) > 2: print('diff divided by 2'); return prev[2]*(1/2)
+            elif (expMineTime/averageTime) < 1/2: print('diff multiplied by 2'); return prev[2]*(2)
+            else: print('diff normal math'); return prev[2]*(expMineTime/averageTime)
         else:
             return 1
         

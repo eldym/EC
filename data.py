@@ -297,7 +297,7 @@ class calculations:
             elif (expMineTime/averageTime) < 1/2: print('diff multiplied by 2'); return prev[2]*(2)
             else: print('diff normal math'); return prev[2]*(expMineTime/averageTime)
         else:
-            return 1
+            return START_DIFF
         
     def calculateReward():
         curr = ecDataGet.getCurrentBlock()

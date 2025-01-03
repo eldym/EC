@@ -274,28 +274,23 @@ class calculations:
             farPrev = ecDataGet.getBlock(curr[0]-288)
 
             # Gets the total of Unix seconds between previous block and 288 blocks before
-            i = 1
-            while i < 289:
-                totalTime = ecDataGet.getBlock(curr[0]-i)
-                i += 1
-
-            # Observed time (s) taken to mine 288 blocks
-            averageTime = sum(totalTime)/288
+            obsMineTime = prev[4] - farPrev[4]
 
             # Expected time (s) taken to mine 288 blocks
             expMineTime = 86400
 
             # Print calculations to console for checking
-            print('Block Completed! Here are the next block\'s statistics:')
-            print('Averaged time (s):',averageTime)
+            print('Block Completed! Here are the block statistics:')
+            print('Averaged time (s):',obsMineTime)
             print('Expected time (s):',expMineTime)
-            print('Deviation from average:', expMineTime/averageTime)
+            print(f'Deviation from expected: ×{expMineTime/obsMineTime:.4f}')
+            print(f'Deviation percentage: {expMineTime/obsMineTime*100:.4f}%')
             print()
 
             # Smooths out difficulty increase to prevent extreme difficulty change shock
-            if (expMineTime/averageTime) > 2: print('diff divided by 2'); return prev[2]*(1/2)
-            elif (expMineTime/averageTime) < 1/2: print('diff multiplied by 2'); return prev[2]*(2)
-            else: print('diff normal math'); return prev[2]*(expMineTime/averageTime)
+            if (expMineTime/obsMineTime) > 2: print('diff multiplied by 2\n'); return prev[2]*(2)
+            elif (expMineTime/obsMineTime) < 1/2: print('diff divided by 2\n'); return prev[2]*(1/2)
+            else: print('diff normal math\n'); return prev[2]*(expMineTime/obsMineTime)
         else:
             return START_DIFF
         

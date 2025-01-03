@@ -4,7 +4,7 @@ import asyncio
 from discord.ext import tasks, commands
 from data import *
 from datetime import datetime
-from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL
+from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL, ADMIN_ID
 
 client = commands.Bot(command_prefix = PREFIXES , intents=discord.Intents.all(), help_command=None)
 
@@ -230,16 +230,30 @@ def errorEmbed(errorMsg):
 @client.command(aliases=['eb'])
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def editBal(ctx, uuid, amount):
-    if ctx.author.id == 395368734732189696:
+    if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
         ecDataManip.updateUserBal(uuid, float(ecDataGet.getUser(uuid)[1]) + float(amount))
-        await ctx.reply(f'updated user funds by: {amount} {CURRENCY}')
+        await ctx.reply(f'Updated user funds by: {amount} {CURRENCY}')
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def createUser(ctx, uuid):
-    if ctx.author.id == 395368734732189696:
+    if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
         ecDataManip.createUser(uuid)
-        await ctx.reply(f'force created user balance')
+        await ctx.reply(f'Force created user balance.')
+
+@client.command()
+@commands.cooldown(1, 2, commands.BucketType.guild)
+async def kill(ctx, uuid):
+    if ctx.author.id == ADMIN_ID:
+        await ctx.reply("**FORCE SHUTDOWN?**\nPlease say \'yes\' or \'y\' within 15 seconds to complete this action.")
+        def check(m):
+            return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
+        
+        try: msg = await client.wait_for('message', check=check, timeout=15.0)
+        except asyncio.TimeoutError: await ctx.reply("The action has been canceled.") # If timer runs out
+        else: 
+            exit()
+
 client.run(TOKEN)

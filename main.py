@@ -14,7 +14,7 @@ async def on_ready():
     print(f"EC is online! :3\nLogged in as:\n\"{client.user}\"\nID: {client.user.id}")
 
 @client.command()
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def create(ctx):
     if ecDataManip.createUser(ctx.author.id) is not False:
         await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
@@ -23,7 +23,7 @@ async def create(ctx):
         await ctx.send(embed=errorEmbed("You already have an account!"))
 
 @client.command(aliases=['b','bal','bank','wallet'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def balance(ctx, *member):
     member = ''.join(member).strip('<@>')
     defaulted = False
@@ -61,7 +61,7 @@ async def balance(ctx, *member):
                 await ctx.reply(embed=errorEmbed(f"Oop! Looks like {member.name} does not have an account!"))
 
 @client.command(aliases=['p', 'pay', 'give'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def send(ctx, reciever, amount):
     senderData = ecDataGet.getUser(ctx.author.id)
     reciever = ''.join(reciever).strip('<@>')
@@ -101,7 +101,7 @@ async def send(ctx, reciever, amount):
         else: await ctx.reply(embed=errorEmbed("**Nobody here but us chickens!** If you found this error, please let eld know!"))
 
 @client.command(aliases=['t', 'tran', 'log', 'reciept'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 
 async def transaction(ctx, id):
     transaction = ecDataGet.getTransaction(id)
@@ -126,13 +126,13 @@ async def transaction(ctx, id):
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
 
 @client.command(aliases=['s'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def supply(ctx):
     # Gives the user the supply of currency
     await ctx.reply(f"There is currently {ecDataGet.getSupply()[0]} {CURRENCY} in supply.")
 
 @client.command(aliases=['m', 'M'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def mine(ctx):
     userData = ecDataGet.getUser(ctx.author.id)
     currBlock = ecDataGet.getCurrentBlock()
@@ -185,7 +185,7 @@ async def mine(ctx):
     else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command()
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def switch(ctx):
     # Switches the user's pooling status
     if ecDataGet.getUser(ctx.author.id) is not None:
@@ -195,14 +195,14 @@ async def switch(ctx):
     else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command(aliases=['bi', 'blockinfo'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def block(ctx, blockNo):
     # Gives the user the block data
     block = ecDataGet.getBlock(blockNo)
     await ctx.reply(embed=blockEmbed(block))
 
 @client.command(aliases=['cb', 'current', 'currentblock'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def current_block(ctx):
     # Gives the user the current block data
     curr = ecDataGet.getCurrentBlock()
@@ -228,7 +228,7 @@ def errorEmbed(errorMsg):
 
 # Admin commands
 @client.command(aliases=['eb'])
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def editBal(ctx, uuid, amount):
     if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
@@ -236,7 +236,7 @@ async def editBal(ctx, uuid, amount):
         await ctx.reply(f'Updated user funds by: {amount} {CURRENCY}')
 
 @client.command()
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def createUser(ctx, uuid):
     if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
@@ -244,7 +244,7 @@ async def createUser(ctx, uuid):
         await ctx.reply(f'Force created user balance.')
 
 @client.command()
-@commands.cooldown(1, 2, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.channel)
 async def kill(ctx, uuid):
     if ctx.author.id == ADMIN_ID:
         await ctx.reply("**FORCE SHUTDOWN?**\nPlease say \'yes\' or \'y\' within 15 seconds to complete this action.")

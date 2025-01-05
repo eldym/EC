@@ -268,16 +268,15 @@ class calculations:
     def calculateDifficulty():
         curr = ecDataGet.getCurrentBlock()
 
-        if curr is not None and curr[0] >= 289:
+        if curr is not None and curr[0] >= 6:
             # Get data points
-            prev = ecDataGet.getBlock(curr[0]-1)
-            farPrev = ecDataGet.getBlock(curr[0]-288)
+            farPrev = ecDataGet.getBlock(curr[0]-5)
 
-            # Gets the total of Unix seconds between previous block and 288 blocks before
-            obsMineTime = prev[4] - farPrev[4]
+            # Gets the total of Unix seconds between current block and 5 blocks before
+            obsMineTime = curr[4] - farPrev[4]
 
-            # Expected time (s) taken to mine 288 blocks
-            expMineTime = 86400
+            # Expected time (s) taken to mine 6 blocks
+            expMineTime = 1800
 
             # Print calculations to console for checking
             print('Block Completed! Here are the block statistics:')
@@ -288,9 +287,9 @@ class calculations:
             print()
 
             # Smooths out difficulty increase to prevent extreme difficulty change shock
-            if (expMineTime/obsMineTime) > 2: print('diff multiplied by 2\n'); return prev[2]*(2)
-            elif (expMineTime/obsMineTime) < 1/2: print('diff divided by 2\n'); return prev[2]*(1/2)
-            else: print('diff normal math\n'); return prev[2]*(expMineTime/obsMineTime)
+            if (expMineTime/obsMineTime) > 2: print('diff multiplied by 2\n'); return curr[2]*(2)
+            elif (expMineTime/obsMineTime) < 1/2: print('diff divided by 2\n'); return curr[2]*(1/2)
+            else: print('diff normal math\n'); return curr[2]*(expMineTime/obsMineTime)
         else:
             return START_DIFF
         

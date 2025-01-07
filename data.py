@@ -166,6 +166,24 @@ class ecDataManip:
         db.cursor().execute("UPDATE users SET balance = %s WHERE uuid = %s", (newBal, uuid))
         db.commit()
 
+    def updateUserPoolingStatus(uuid):
+        # Updates a user's mining method setting
+        user = ecDataGet.getUser(uuid)
+        db = ecDataGet.getDB()
+        if user[4] == 0: db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
+        elif user[4] == 1: db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
+        db.commit()
+        return "Pool" if user[4] == 0 else "Solo"
+    
+    def updateUserAutominingStatus(uuid):
+        # Updates a user's automated mining setting
+        user = ecDataGet.getUser(uuid)
+        db = ecDataGet.getDB()
+        if user[5] == 0: db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
+        elif user[5] == 1: db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
+        db.commit()
+        return "Automining" if user[5] == 0 else "Manual"
+
     def incrementUserBlockCount(uuid, type):
         # Updates specific user's balance
         db = ecDataGet.getDB()
@@ -178,15 +196,6 @@ class ecDataManip:
         db = ecDataGet.getDB()
         db.cursor().execute(f"UPDATE pool_b_data SET shares = shares + 1 WHERE miner = {uuid}")
         db.commit()
-
-    def updateUserPoolingStatus(uuid):
-        # Updates a user's mining status setting
-        user = ecDataGet.getUser(uuid)
-        db = ecDataGet.getDB()
-        if user[4] == 0: db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
-        elif user[4] == 1: db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
-        db.commit()
-        return "Pool" if user[4] == 0 else "Solo"
 
     def createBlock():
         # Creates a new block

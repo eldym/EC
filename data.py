@@ -80,11 +80,21 @@ class ecDataGet:
         for transaction in cursor: pass
         return transaction
     
-    def getUserTransaction(uuid):
-        # Get specific transaction data of a user
+    def getUserSentTransactions(uuid):
+        # Get specific send transaction data of a user
         db = ecDataGet.getDB()
         cursor = db.cursor()
-        cursor.execute(f"SELECT * FROM transactions WHERE id = {id}")
+        cursor.execute(f"SELECT * FROM transactions WHERE send_uuid = {uuid}")
+
+        transactions = []
+        for transaction in cursor: transactions.append(transaction)
+        return transaction
+    
+    def getUserRecvTransactions(uuid):
+        # Get specific send transaction data of a user
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM transactions WHERE recv_uuid = {uuid}")
 
         transactions = []
         for transaction in cursor: transactions.append(transaction)

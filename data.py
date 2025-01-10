@@ -71,13 +71,23 @@ class ecDataGet:
         return block
     
     def getTransaction(id):
-        # Get specific transaction data
+        # Get specific transaction data from transaction ID
         db = ecDataGet.getDB()
         cursor = db.cursor()
         cursor.execute(f"SELECT * FROM transactions WHERE id = {id}")
 
         transaction = None
         for transaction in cursor: pass
+        return transaction
+    
+    def getUserTransaction(uuid):
+        # Get specific transaction data of a user
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM transactions WHERE id = {id}")
+
+        transactions = []
+        for transaction in cursor: transactions.append(transaction)
         return transaction
     
     def getCurrentBlock():

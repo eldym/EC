@@ -91,7 +91,7 @@ class ecDataGet:
         return transaction
     
     def getUserRecvTransactions(uuid):
-        # Get specific send transaction data of a user
+        # Get specific recieving transaction data of a user
         db = ecDataGet.getDB()
         cursor = db.cursor()
         cursor.execute(f"SELECT * FROM transactions WHERE recv_uuid = {uuid}")

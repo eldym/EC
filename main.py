@@ -184,6 +184,21 @@ async def mine(ctx):
     # If user doesn't exist, throw error embed
     else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
+@client.command(aliases=['am', 'auto'])
+@commands.cooldown(1, 2, commands.BucketType.channel)
+async def automine(ctx):
+    userData = ecDataGet.getUser(ctx.author.id)
+
+    # First, check if the user exists
+    if userData is not None:
+        result = ecDataManip.updateUserAutominingStatus(ctx.author.id)
+
+        if result == "Automining":
+            pass
+        elif result == "Manual":
+            pass
+
+
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def switch(ctx):

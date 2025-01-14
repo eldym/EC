@@ -187,17 +187,12 @@ async def mine(ctx):
 @client.command(aliases=['am', 'auto'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def automine(ctx):
-    userData = ecDataGet.getUser(ctx.author.id)
-
-    # First, check if the user exists
-    if userData is not None:
+    # Switches the user's mining status
+    if ecDataGet.getUser(ctx.author.id) is not None:
         result = ecDataManip.updateUserAutominingStatus(ctx.author.id)
-
-        if result == "Automining":
-            pass
-        elif result == "Manual":
-            pass
-
+        embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR)
+        await ctx.reply(embed=embed)
+    else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)

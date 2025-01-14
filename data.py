@@ -69,6 +69,17 @@ class ecDataGet:
         block = None
         for block in cursor: pass
         return block
+
+    def getAllBlocks():
+        # Gets all block data
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM block")
+
+        blocks = []
+        for block in cursor:
+            blocks.append(block)
+        return blocks
     
     def getTransaction(id):
         # Get specific transaction data from transaction ID

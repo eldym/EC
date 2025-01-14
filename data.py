@@ -60,6 +60,37 @@ class ecDataGet:
         for user in cursor: pass
         return user
     
+    def getUserSentTransactions(uuid):
+        # Get specific send transaction data of a user
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM transactions WHERE send_uuid = {uuid}")
+
+        transactions = []
+        for transaction in cursor: transactions.append(transaction)
+        return transaction
+    
+    def getUserRecvTransactions(uuid):
+        # Get specific recieving transaction data of a user
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM transactions WHERE recv_uuid = {uuid}")
+
+        transactions = []
+        for transaction in cursor: transactions.append(transaction)
+        return transaction
+    
+    def getBalancesDescending():
+        # Get user data in descending order of balance
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM users ORDER BY balance DESC")
+
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
+    
     def getBlock(blockNo):
         # Get specific block data
         db = ecDataGet.getDB()
@@ -89,26 +120,6 @@ class ecDataGet:
 
         transaction = None
         for transaction in cursor: pass
-        return transaction
-    
-    def getUserSentTransactions(uuid):
-        # Get specific send transaction data of a user
-        db = ecDataGet.getDB()
-        cursor = db.cursor()
-        cursor.execute(f"SELECT * FROM transactions WHERE send_uuid = {uuid}")
-
-        transactions = []
-        for transaction in cursor: transactions.append(transaction)
-        return transaction
-    
-    def getUserRecvTransactions(uuid):
-        # Get specific recieving transaction data of a user
-        db = ecDataGet.getDB()
-        cursor = db.cursor()
-        cursor.execute(f"SELECT * FROM transactions WHERE recv_uuid = {uuid}")
-
-        transactions = []
-        for transaction in cursor: transactions.append(transaction)
         return transaction
     
     def getCurrentBlock():
@@ -180,7 +191,7 @@ class ecDataManip:
         # Creates a new user if the user doesn't have an account
         if ecDataGet.getUser(uuid) is None:
             db = ecDataGet.getDB()
-            db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling) VALUES (%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0))
+            db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling, automining) VALUES (%s,%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0, 0))
             db.commit()
             return ecDataGet.getUser(uuid)
         else: return False

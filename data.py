@@ -151,6 +151,17 @@ class ecDataGet:
         for data in cursor: pass
         return data
     
+    def getAutoMiners():
+        # Gets automining users
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM users WHERE automining = 1")
+
+        automining = []
+        for user in cursor: 
+            automining.append(user)
+        return automining
+    
 # Data manipulating
 class ecDataManip:
     

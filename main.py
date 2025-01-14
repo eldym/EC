@@ -11,16 +11,31 @@ client = commands.Bot(command_prefix = PREFIXES , intents=discord.Intents.all(),
 @client.event
 async def on_ready():
     # Starts up the bot!
+    print('Waking up!')
+    print('Starting status loop...')
     status.start()
+    print('Starting automine loop...')
+    run_automine.start()
     print(f"EC is online! :3\nLogged in as:\n\"{client.user}\"\nID: {client.user.id}")
 
 @tasks.loop()
 async def status():
+    # Changes bot status every 20 seconds from status list
     statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #: {ecDataGet.getCurrentBlock()[0]}", f"{int(ecDataGet.getSupply()[0]):,} EC in supply"] # Add/edit status selection to your choosing
 
     for status in statuses:
         await client.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))
         await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
+
+@tasks.loop()
+async def run_automine():
+    await asyncio.sleep(10) # Time interval between mines (set to 10 seconds)
+
+    # Automatically runs the mine command for users with automining on
+    for i in ecDataGet.getAutoMiners():
+        guess, reciept = ecCore.mine(i[0])
+        if reciept is None: print('User ID:', i[0], 'automined.')
+        else: print('User ID:', i[0], 'broke the block. Guess was:', guess)
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
@@ -151,9 +166,22 @@ async def supply(ctx):
 async def mine(ctx):
     userData = ecDataGet.getUser(ctx.author.id)
     currBlock = ecDataGet.getCurrentBlock()
+    
+    # Check if user is automining
+    if userData[5] == 1:
+        # Automine embed
+        embed=discord.Embed(title=f"You are automining block #{currBlock[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
+        embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
+        if userData[4] == 1:
+            embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
+            embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
+            if ecDataGet.getPoolMiner(ctx.author.id)[2] != 0:
+                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
+        
+        await ctx.reply(embed=embed)
 
     # First, check if the user exists
-    if userData is not None:
+    elif userData is not None:
         # Run the mine function to recieve results of mining
         guess, reciept = ecCore.mine(ctx.author.id)
         
@@ -161,7 +189,8 @@ async def mine(ctx):
         if reciept is None:
             # Pool share submission
             if userData[4]==1:
-                embed=discord.Embed(title="Submitted share to pool!", description="Your contribution has been logged to the pool!", color=EMB_COLOUR, timestamp=datetime.now())
+                embed=discord.Embed(title="Submitted share to pool!", description=f"Your contribution to block #{currBlock[0]}\nhas been logged to the pool!", color=EMB_COLOUR, timestamp=datetime.now())
+                embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
                 embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
                 embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
                 embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)

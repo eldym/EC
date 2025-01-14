@@ -199,8 +199,8 @@ class ecDataManip:
         # Updates a user's automated mining setting
         user = ecDataGet.getUser(uuid)
         db = ecDataGet.getDB()
-        if user[5] == 0: db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
-        elif user[5] == 1: db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
+        if user[5] == 0: db.cursor().execute(f"UPDATE users SET automining = automining + 1 WHERE uuid = {uuid}")
+        elif user[5] == 1: db.cursor().execute(f"UPDATE users SET automining = automining - 1 WHERE uuid = {uuid}")
         db.commit()
         return "Automining" if user[5] == 0 else "Manual"
 

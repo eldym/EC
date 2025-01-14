@@ -124,7 +124,7 @@ async def send(ctx, reciever, amount):
         else: await ctx.reply(embed=errorEmbed("This user does not exist! Please check if you mentionned or typed their Discord ID correctly!"))
     else:
         # Reply error outs
-        if senderData is None: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
+        if senderData is None: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
         elif reciever == str(ctx.author.id): await ctx.reply(embed=errorEmbed("You can't send money to yourself!"))
         elif float(amount) < 0.000001: await ctx.reply(embed=errorEmbed(f"The amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!"))
         elif float(senderData[1]) < float(amount): await ctx.reply(embed=errorEmbed("Your balance is too low!"))
@@ -168,7 +168,7 @@ async def mine(ctx):
     currBlock = ecDataGet.getCurrentBlock()
     
     # Check if user is automining
-    if userData[5] == 1:
+    if userData is not None and userData[5] == 1:
         # Automine embed
         embed=discord.Embed(title=f"You are automining block #{currBlock[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
@@ -226,7 +226,7 @@ async def mine(ctx):
         await ctx.reply(embed=embed)
     
     # If user doesn't exist, throw error embed
-    else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
+    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
 
 @client.command(aliases=['am', 'auto'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
@@ -236,7 +236,7 @@ async def automine(ctx):
         result = ecDataManip.updateUserAutominingStatus(ctx.author.id)
         embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR)
         await ctx.reply(embed=embed)
-    else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
+    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
@@ -246,7 +246,7 @@ async def switch(ctx):
         result = ecDataManip.updateUserPoolingStatus(ctx.author.id)
         embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR)
         await ctx.reply(embed=embed)
-    else: await ctx.reply(embed=errorEmbed("You do not have an account yet! Please run `!create` to start."))
+    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
 
 @client.command(aliases=['bi', 'blockinfo'])
 @commands.cooldown(1, 2, commands.BucketType.channel)

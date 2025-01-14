@@ -7,11 +7,11 @@
 
 # PLEASE NOTE!
 
-This project is currently a WIP!
-In it's current state, the bot is missing key features in order to function as intended.
-Please stay tuned for updates and eventual completion.
+Yippee! Core features have been completed! 
+However, more planned features are on their way! 
+Please stay tuned for continued updates.
 
-A guide will later be provided *here* when the code is operational!
+A guide will later be provided *here* when I feel that the code is ready to ship!
 
 Thanks!
 

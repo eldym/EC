@@ -51,7 +51,7 @@ async def balance(ctx, *member):
                 else: autostatus = "*This user is currently automining.*"
 
             # Embed building
-            embed=discord.Embed(title=embTitle, description=f"**{autostatus}**", color=EMB_COLOUR, timestamp=datetime.now())
+            embed=discord.Embed(title=embTitle, description=f"{autostatus}", color=EMB_COLOUR, timestamp=datetime.now())
             try: embed.set_thumbnail(url=member.avatar.url)
             except: embed.set_thumbnail(url=f'https://cdn.discordapp.com/embed/avatars/{random.randint(0,5)}.png')    
             embed.add_field(name="💵 Currency", value=f"{userData[1]} {CURRENCY}", inline=False)

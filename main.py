@@ -27,15 +27,18 @@ async def status():
         await client.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))
         await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
 
-@tasks.loop()
+@tasks.loop(seconds=10)
 async def run_automine():
-    await asyncio.sleep(10) # Time interval between mines (set to 10 seconds)
+    # Time interval between mines set to 10 seconds
 
     # Automatically runs the mine command for users with automining on
     for i in ecDataGet.getAutoMiners():
+        currBlock = ecDataGet.getCurrentBlock()
         guess, reciept = ecCore.mine(i[0])
         if reciept is None: print('User ID:', i[0], 'automined.')
-        else: print('User ID:', i[0], 'broke the block. Guess was:', guess)
+        else: 
+            print('User ID:', i[0], 'broke the block. Guess was:', guess)
+            await blockBrokeEmbed(i[0], reciept, currBlock)
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
@@ -114,8 +117,8 @@ async def send(ctx, reciever, amount):
 
                     # Embed building
                     embed=discord.Embed(title="Transaction Success!", description=f"**{float(amount):.6f} {CURRENCY}** was sent to **{reciever.name}**.", color=EMB_COLOUR, timestamp=datetime.now())
-                    embed.add_field(name="Transaction ID", value=f"`{reciept[0]}`", inline=False)
-                    embed.add_field(name="Fee", value=f"`{reciept[4]}` {CURRENCY}", inline=False)
+                    embed.add_field(name="🧾 Transaction ID", value=f"`{reciept[0]}`", inline=False)
+                    embed.add_field(name="🛃 Fee", value=f"`{reciept[4]}` {CURRENCY}", inline=False)
                     embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
                     await ctx.reply(embed=embed)
                 else:
@@ -143,12 +146,12 @@ async def transaction(ctx, id):
         reciever = await ctx.bot.fetch_user(transaction[2])
         embed=discord.Embed(title=f"Transaction #{transaction[0]} Information", color=EMB_COLOUR)
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
-        if transaction[1] != "Coinbase": embed.add_field(name="Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
-        else: embed.add_field(name="Sender", value=f"Coinbase", inline=False)
-        embed.add_field(name="Reciever", value=f"{reciever.name} (`{transaction[2]}`)", inline=False)
-        embed.add_field(name="Amount", value=f"`{transaction[3]}` {CURRENCY}", inline=False)
-        embed.add_field(name="Fee", value=f"`{transaction[4]}` {CURRENCY}", inline=False)
-        embed.add_field(name="Time", value=f"<t:{transaction[5]}:f>", inline=False)
+        if transaction[1] != "Coinbase": embed.add_field(name="📨 Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
+        else: embed.add_field(name="📨 Sender", value=f"Coinbase", inline=False)
+        embed.add_field(name="📥 Reciever", value=f"{reciever.name} (`{transaction[2]}`)", inline=False)
+        embed.add_field(name="💵 Amount", value=f"`{transaction[3]}` {CURRENCY}", inline=False)
+        embed.add_field(name="🛃 Fee", value=f"`{transaction[4]}` {CURRENCY}", inline=False)
+        embed.add_field(name="⏱️ Time", value=f"<t:{transaction[5]}:f>", inline=False)
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
     
@@ -184,7 +187,7 @@ async def mine(ctx):
     elif userData is not None:
         # Run the mine function to recieve results of mining
         guess, reciept = ecCore.mine(ctx.author.id)
-        
+
         # If the guess was unsuccessful - womp womp
         if reciept is None:
             # Pool share submission
@@ -202,24 +205,15 @@ async def mine(ctx):
         else:
             # Congratulatory embed building
             embed=discord.Embed(title="You broke the block!", description="The rewards have been distributed!", color=EMB_COLOUR, timestamp=datetime.now())
-            # Pool payout
-            if type(reciept) is list:
-                i = 0
-                ids = []
-                while i < len(reciept):
-                    ids.append(reciept[i][0])
-                    i = i + 1
-                embed.add_field(name="🧾 Coinbase Transaction Reciept IDs", value=f"`{ids}`", inline=False)
-            # Solo payout
-            else: embed.add_field(name="🧾Coinbase Transaction Reciept ID", value=f"`{reciept[0]}` ", inline=False)
+            
+            # Generates and sends an embed to dedicated channel and gets transaction IDs for usage
+            ids = await blockBrokeEmbed(userData[0], reciept, currBlock)
 
-            # Broadcasts to a channel that a block was broken
-            channel = client.get_channel(OUTPUT_CHANNEL)
-            channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=0x000000)
-            channelEmbed.add_field(name='Breaker', value=f'{ctx.author.name} (`{ctx.author.id}`)', inline=False)
-            if type(reciept) is list: channelEmbed.add_field(name='Transaction IDs', value=f'{ids}', inline=False)
-            else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)
-            await channel.send(embed=channelEmbed)
+            # For building embed
+            if type(reciept) is list: # Pool payout
+                embed.add_field(name="🧾 Coinbase Transaction Reciept IDs", value=f"`{ids}`", inline=False)
+            else: # Solo payout
+                embed.add_field(name="🧾 Coinbase Transaction Reciept ID", value=f"`{ids}` ", inline=False)
 
         # Shows the miner the guess they made and replies
         embed.add_field(name="⛏️ Your Guess", value=f"`{guess}`", inline=False)
@@ -261,6 +255,28 @@ async def current_block(ctx):
     # Gives the user the current block data
     curr = ecDataGet.getCurrentBlock()
     await ctx.reply(embed=blockEmbed(curr))
+
+async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
+
+    ids = []
+    # Pool payout
+    if type(reciept) is list:
+        i = 0
+        while i < len(reciept):
+            ids.append(reciept[i][0])
+            i = i + 1
+    else: ids = reciept[0]
+
+    # Broadcasts to a channel that a block was broken
+    channel = client.get_channel(OUTPUT_CHANNEL)
+    breaker = await client.fetch_user(breakerUuid)
+    channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=0x000000)
+    channelEmbed.add_field(name='Breaker', value=f'{breaker.name} (`{breakerUuid}`)', inline=False)
+    if type(reciept) is list: channelEmbed.add_field(name='Transaction IDs', value=f'{ids}', inline=False)
+    else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)
+    await channel.send(embed=channelEmbed)
+
+    return ids
 
 def blockEmbed(blockData):
     # Generates block information embed

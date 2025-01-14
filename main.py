@@ -10,8 +10,17 @@ client = commands.Bot(command_prefix = PREFIXES , intents=discord.Intents.all(),
 
 @client.event
 async def on_ready():
-    # TODO: Make a changing status
+    # Starts up the bot!
+    status.start()
     print(f"EC is online! :3\nLogged in as:\n\"{client.user}\"\nID: {client.user.id}")
+
+@tasks.loop()
+async def status():
+    statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #: {ecDataGet.getCurrentBlock()[0]}", f"{int(ecDataGet.getSupply()[0]):,} EC in supply"] # Add/edit status selection to your choosing
+
+    for status in statuses:
+        await client.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))
+        await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)

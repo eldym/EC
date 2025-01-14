@@ -270,7 +270,7 @@ async def createUser(ctx, uuid):
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
-async def kill(ctx, uuid):
+async def kill(ctx):
     if ctx.author.id == ADMIN_ID:
         await ctx.reply("**FORCE SHUTDOWN?**\nPlease say \'yes\' or \'y\' within 15 seconds to complete this action.")
         def check(m):

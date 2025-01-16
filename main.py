@@ -257,7 +257,7 @@ async def current_block(ctx):
     await ctx.reply(embed=blockEmbed(curr))
 
 async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
-
+    # Generates block broken embed
     ids = []
     # Pool payout
     if type(reciept) is list:
@@ -265,6 +265,7 @@ async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
         while i < len(reciept):
             ids.append(reciept[i][0])
             i = i + 1
+    # Solo payout
     else: ids = reciept[0]
 
     # Broadcasts to a channel that a block was broken
@@ -297,17 +298,19 @@ def errorEmbed(errorMsg):
     return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR)
 
 # Admin commands
-@client.command(aliases=['eb'])
+@client.command(aliases=['ab'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
-async def editBal(ctx, uuid, amount):
+async def addBal(ctx, uuid, amount):
+    # Adds balance to a specific user
     if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
         ecDataManip.updateUserBal(uuid, float(ecDataGet.getUser(uuid)[1]) + float(amount))
         await ctx.reply(f'Updated user funds by: {amount} {CURRENCY}')
 
-@client.command()
+@client.command(aliases=['cu'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def createUser(ctx, uuid):
+    # Force creates a user to have a balance
     if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
         ecDataManip.createUser(uuid)
@@ -316,11 +319,12 @@ async def createUser(ctx, uuid):
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def kill(ctx):
+    # Forces the bot to shut down, only use when a catastrophic bug arises!
     if ctx.author.id == ADMIN_ID:
         await ctx.reply("**FORCE SHUTDOWN?**\nPlease say \'yes\' or \'y\' within 15 seconds to complete this action.")
         def check(m):
             return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
-        
+        # Confirmation for the kill switch
         try: msg = await client.wait_for('message', check=check, timeout=15.0)
         except asyncio.TimeoutError: await ctx.reply("The action has been canceled.") # If timer runs out
         else: 

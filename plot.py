@@ -14,8 +14,12 @@ def getPlot():
 
     if len(allBlocks) > 100:
         i = len(allBlocks) - 100
+    else: i = 0
+    
     while i < len(allBlocks):
         difficulties.append(allBlocks[i][2])
         i += 1
 
     return difficulties_plot(difficulties)
+
+getPlot()

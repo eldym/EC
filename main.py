@@ -258,9 +258,26 @@ async def current_block(ctx):
 
 @client.command(aliases=['lb', 'leader', 'board'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
-async def leaderboard(ctx, *lbType):
+async def leaderboard(ctx, lbType, *page):
     # Gives the user leaderboards
-    data = ecDataGet.getBalancesDescending()
+
+    if len(page) <= 0 or len(page) >= 2:
+        page = 1
+    
+    if lbType.lower() == 'b' or 'bal' or 'balance':
+        lbType = 'Balance' # To send off to embed builder to specify
+        data = ecDataGet.getBalancesDescending()
+    elif lbType.lower() == 's' or 'solo':
+        lbType = 'Solo Block'
+        data = None # TODO
+    elif lbType.lower() == 'p' or 'pool':
+        lbType = 'Pool Block'
+        data = None # TODO
+    
+    # TODO
+    # await ctx.reply(embed=lbEmbed(data, lbType, page))
+
+# EMBED BUILDING BELOW
 
 async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
     # Generates block broken embed
@@ -298,6 +315,22 @@ def blockEmbed(blockData):
         embed.add_field(name="⏲️ Block Creation Time Unix", value=f"`{blockData[4]}`", inline=False)
         return embed
     else: return errorEmbed("This block does not exist!")
+
+def lbEmbed(data, lbType, page):
+    # Generates leaderboard embeds
+    lbData = []
+
+    # Calculates index ranges
+    if page != 0: startIndex = (page*10) - 10
+    else: startIndex = 0
+    endIndex = (page*10) - 1
+
+    for i in data[startIndex:endIndex]:
+        lbData.append(i)
+
+    # TODO
+
+    return None
 
 def errorEmbed(errorMsg):
     # Generates the error message embed

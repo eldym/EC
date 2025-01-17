@@ -256,6 +256,12 @@ async def current_block(ctx):
     curr = ecDataGet.getCurrentBlock()
     await ctx.reply(embed=blockEmbed(curr))
 
+@client.command(aliases=['lb', 'leader', 'board'])
+@commands.cooldown(1, 2, commands.BucketType.channel)
+async def leaderboard(ctx, *lbType):
+    # Gives the user leaderboards
+    data = ecDataGet.getBalancesDescending()
+
 async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
     # Generates block broken embed
     ids = []

@@ -35,7 +35,7 @@ async def run_automine():
     for i in ecDataGet.getAutoMiners():
         currBlock = ecDataGet.getCurrentBlock()
         guess, reciept = ecCore.mine(i[0])
-        if reciept is None: print('User ID:', i[0], 'automined.')
+        if reciept is None: pass
         else: 
             print('User ID:', i[0], 'broke the block. Guess was:', guess)
             await blockBrokeEmbed(i[0], reciept, currBlock)
@@ -274,8 +274,7 @@ async def leaderboard(ctx, lbType, *page):
         lbType = 'Pool Block'
         data = None # TODO
     
-    # TODO
-    # await ctx.reply(embed=lbEmbed(data, lbType, page))
+    await ctx.reply(embed = await lbEmbed(ctx, data, lbType, page))
 
 # EMBED BUILDING BELOW
 
@@ -316,21 +315,33 @@ def blockEmbed(blockData):
         return embed
     else: return errorEmbed("This block does not exist!")
 
-def lbEmbed(data, lbType, page):
+async def lbEmbed(ctx, data, lbType, page):
     # Generates leaderboard embeds
-    lbData = []
 
     # Calculates index ranges
-    if page != 0: startIndex = (page*10) - 10
-    else: startIndex = 0
-    endIndex = (page*10) - 1
+    if type(page) is int and page >= 1: 
+        startIndex = (page*10) - 10
+        endIndex = (page*10) - 1
+    else: 
+        startIndex = 0
+        endIndex = 10
 
+    lbData = []
     for i in data[startIndex:endIndex]:
         lbData.append(i)
 
-    # TODO
+    if len(lbData) >= 1:
+        descriptionString = ""
 
-    return None
+        for i in lbData:
+            user = await ctx.bot.fetch_user(i[0])
+            descriptionString += f"{user.name} (`{i[0]}`) {i[1]} {CURRENCY}\n"
+
+        descriptionString = descriptionString.replace('_', '\\_')
+
+        return discord.Embed(title=f"{lbType} Leaderboard", description=descriptionString, color=EMB_COLOUR, timestamp=datetime.now())
+    else:
+        return None # test
 
 def errorEmbed(errorMsg):
     # Generates the error message embed

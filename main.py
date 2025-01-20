@@ -374,7 +374,7 @@ async def lbEmbed(ctx, data, lbType, page):
 
         # Building embed
         embed = discord.Embed(title=f"{lbType} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
-        if startIndex == 0: startIndex = 1
+        startIndex += 1
         for i in lbData:
             user = await ctx.bot.fetch_user(i[0])
             embed.add_field(name=f"{startIndex}. {user.name.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)

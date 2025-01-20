@@ -92,7 +92,7 @@ class ecDataGet:
         return users
     
     def getPoolBlockDescending():
-        # Get user data in descending order of balance
+        # Get user data in descending order of broken pool blocks
         db = ecDataGet.getDB()
         cursor = db.cursor()
         cursor.execute(f"SELECT * FROM users ORDER BY pool_b DESC")
@@ -103,7 +103,7 @@ class ecDataGet:
         return users
     
     def getSoloBlockDescending():
-        # Get user data in descending order of balance
+        # Get user data in descending order of broken solo blocks
         db = ecDataGet.getDB()
         cursor = db.cursor()
         cursor.execute(f"SELECT * FROM users ORDER BY solo_b DESC")

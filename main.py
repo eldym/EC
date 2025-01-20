@@ -93,6 +93,8 @@ async def balance(ctx, *member):
             else:
                 await ctx.reply(embed=errorEmbed(f"Oop! Looks like {member.name} does not have an account!"))
 
+# TRANSACTIONAL COMMANDS
+
 @client.command(aliases=['p', 'pay', 'give'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def send(ctx, reciever, amount):
@@ -164,6 +166,8 @@ async def supply(ctx):
     # Gives the user the supply of currency
     await ctx.reply(f"There is currently {ecDataGet.getSupply()[0]} {CURRENCY} in supply.")
 
+# MINING
+
 @client.command(aliases=['m', 'M'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def mine(ctx):
@@ -219,28 +223,36 @@ async def mine(ctx):
         embed.add_field(name="⛏️ Your Guess", value=f"`{guess}`", inline=False)
         await ctx.reply(embed=embed)
     
-    # If user doesn't exist, throw error embed
+    # If user doesn't exist, throw error embed/prompt to create
     else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
+
+# AUTOMINE COMMANDS
 
 @client.command(aliases=['am', 'auto'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def automine(ctx):
     # Switches the user's mining status
+
+    # Check if user exists
     if ecDataGet.getUser(ctx.author.id) is not None:
         result = ecDataManip.updateUserAutominingStatus(ctx.author.id)
-        embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR)
+        embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR) # Replies to user of result
         await ctx.reply(embed=embed)
-    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
+    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
 
 @client.command()
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def switch(ctx):
     # Switches the user's pooling status
+
+    # Check if user exists
     if ecDataGet.getUser(ctx.author.id) is not None:
         result = ecDataManip.updateUserPoolingStatus(ctx.author.id)
-        embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR)
+        embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR) # Replies to user of result
         await ctx.reply(embed=embed)
-    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
+    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
+
+# BLOCK DATA COMMANDS
 
 @client.command(aliases=['bi', 'blockinfo'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
@@ -255,6 +267,8 @@ async def current_block(ctx):
     # Gives the user the current block data
     curr = ecDataGet.getCurrentBlock()
     await ctx.reply(embed=blockEmbed(curr))
+
+# LEADERBOARD COMMAND
 
 @client.command(aliases=['lb', 'leader', 'board'])
 @commands.cooldown(1, 10, commands.BucketType.channel)
@@ -272,6 +286,7 @@ async def leaderboard(ctx, lbType, *page):
 
     data = None
 
+    # Checks the typing of leaderboard requested
     if lbType.lower() in bOptions:
         lbType = 'Balance' # To send off to embed builder to specify
         data = ecDataGet.getBalancesDescending() # Gets database data
@@ -282,6 +297,7 @@ async def leaderboard(ctx, lbType, *page):
         lbType = 'Pool Block'
         data = ecDataGet.getPoolBlockDescending()
     
+    # Replies built leaderboard embed
     if data is not None:
         await ctx.reply(embed = await lbEmbed(ctx, data, lbType, page))
     else:
@@ -310,10 +326,11 @@ async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
     else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)
     await channel.send(embed=channelEmbed)
 
+    # Returns transaction IDs
     return ids
 
 def blockEmbed(blockData):
-    # Generates block information embed
+    # Generates block information embed if block exists
     if blockData is not None:
         embed=discord.Embed(title=f"Block #{blockData[0]} Information", description=f"{"*Current block!*" if blockData == ecDataGet.getCurrentBlock() else ""}", color=EMB_COLOUR)
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
@@ -324,7 +341,7 @@ def blockEmbed(blockData):
         embed.add_field(name="⌛ Block Creation Time", value=f"<t:{blockData[4]}:f>", inline=False)
         embed.add_field(name="⏲️ Block Creation Time Unix", value=f"`{blockData[4]}`", inline=False)
         return embed
-    else: return errorEmbed("This block does not exist!")
+    else: return errorEmbed("This block does not exist!") # Error embed if block doesn't exist
 
 async def lbEmbed(ctx, data, lbType, page):
     # Generates leaderboard embeds

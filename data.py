@@ -91,6 +91,28 @@ class ecDataGet:
             users.append(user)
         return users
     
+    def getPoolBlockDescending():
+        # Get user data in descending order of balance
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM users ORDER BY pool_b DESC")
+
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
+    
+    def getSoloBlockDescending():
+        # Get user data in descending order of balance
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM users ORDER BY solo_b DESC")
+
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
+    
     def getBlock(blockNo):
         # Get specific block data
         db = ecDataGet.getDB()

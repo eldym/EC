@@ -278,7 +278,7 @@ async def plot(ctx):
     embed = discord.Embed(title="Past 30 Blocks' Difficulty", description="A plot of past 30 blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
     file = discord.File("chart.png", filename="image.png")
     embed.set_image(url="attachment://image.png")
-    await ctx.send(file=file, embed=embed)
+    await ctx.reply(file=file, embed=embed)
 
 # LEADERBOARD COMMAND
 

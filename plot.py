@@ -16,8 +16,8 @@ def makePlot():
     allBlocks = ecDataGet.getAllBlocks()
     difficulties = []
 
-    if len(allBlocks) > 30:
-        i = len(allBlocks) - 30
+    if len(allBlocks) > 31:
+        i = len(allBlocks) - 31
     else: i = 0
 
     beginIndex = i

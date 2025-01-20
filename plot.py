@@ -6,9 +6,9 @@ def difficulties_plot(difficulties):
     plt.plot(difficulties)
     plt.ylabel('Difficulty')
     plt.xlabel('Block #')
-    plt.show()
+    plt.savefig('chart.png', bbox_inches='tight')
 
-def getPlot():
+def makePlot():
     allBlocks = ecDataGet.getAllBlocks()
     difficulties = []
 
@@ -21,5 +21,3 @@ def getPlot():
         i += 1
 
     return difficulties_plot(difficulties)
-
-getPlot()

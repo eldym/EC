@@ -272,10 +272,10 @@ async def current_block(ctx):
 @client.command(aliases=['dp', 'diff'])
 @commands.cooldown(1, 10, commands.BucketType.channel)
 async def plot(ctx):
-    # Generates a plot of past 100 block difficulties
+    # Generates a plot of past 30 block difficulties
     makePlot()
 
-    embed = discord.Embed(title="Past 100 Blocks' Difficulty", description="A plot of past 100 blocks' difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
+    embed = discord.Embed(title="Past 30 Blocks' Difficulty", description="A plot of past 30 blocks' difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
     file = discord.File("chart.png", filename="image.png")
     embed.set_image(url="attachment://image.png")
     await ctx.send(file=file, embed=embed)

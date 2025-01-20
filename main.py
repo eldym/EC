@@ -3,6 +3,7 @@ import asyncio
 
 from discord.ext import tasks, commands
 from data import *
+from plot import makePlot
 from datetime import datetime
 from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL, ADMIN_ID
 
@@ -267,6 +268,17 @@ async def current_block(ctx):
     # Gives the user the current block data
     curr = ecDataGet.getCurrentBlock()
     await ctx.reply(embed=blockEmbed(curr))
+
+@client.command(aliases=['dp', 'diff'])
+@commands.cooldown(1, 10, commands.BucketType.channel)
+async def plot(ctx):
+    # Generates a plot of past 100 block difficulties
+    makePlot()
+
+    embed = discord.Embed(title="Past 100 Blocks' Difficulty", description="A plot of past 100 blocks' difficulties:", color=EMB_COLOUR) #creates embed
+    file = discord.File("chart.png", filename="image.png")
+    embed.set_image(url="attachment://image.png")
+    await ctx.send(file=file, embed=embed)
 
 # LEADERBOARD COMMAND
 

@@ -21,7 +21,7 @@ async def on_ready():
 @tasks.loop()
 async def status():
     # Changes bot status every 20 seconds from status list
-    statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #: {ecDataGet.getCurrentBlock()[0]}", f"{int(ecDataGet.getSupply()[0]):,} EC in supply"] # Add/edit status selection to your choosing
+    statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #{ecDataGet.getCurrentBlock()[0]}", f"{int(ecDataGet.getSupply()[0]):,} EC in supply"] # Add/edit status selection to your choosing
 
     for status in statuses:
         await client.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))

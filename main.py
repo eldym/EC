@@ -257,24 +257,35 @@ async def current_block(ctx):
     await ctx.reply(embed=blockEmbed(curr))
 
 @client.command(aliases=['lb', 'leader', 'board'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, 10, commands.BucketType.channel)
 async def leaderboard(ctx, lbType, *page):
     # Gives the user leaderboards
 
-    if len(page) <= 0 or len(page) >= 2:
+    # Checks if it should default to page 1 (if there is no given page number or invalid input)
+    if len(page) <= 0 or len(page) >= 2 or type(page) is not int:
         page = 1
     
-    if lbType.lower() == 'b' or 'bal' or 'balance':
+    # Checks what the user inputs
+    bOptions = ['b', 'bal', 'balance']
+    sOptions = ['s', 'solo']
+    pOptions = ['p', 'pool']
+
+    data = None
+
+    if lbType.lower() in bOptions:
         lbType = 'Balance' # To send off to embed builder to specify
-        data = ecDataGet.getBalancesDescending()
-    elif lbType.lower() == 's' or 'solo':
+        data = ecDataGet.getBalancesDescending() # Gets database data
+    elif lbType.lower() in sOptions:
         lbType = 'Solo Block'
-        data = None # TODO
-    elif lbType.lower() == 'p' or 'pool':
+        data = ecDataGet.getSoloBlockDescending()
+    elif lbType.lower() in pOptions:
         lbType = 'Pool Block'
-        data = None # TODO
+        data = ecDataGet.getPoolBlockDescending()
     
-    await ctx.reply(embed = await lbEmbed(ctx, data, lbType, page))
+    if data is not None:
+        await ctx.reply(embed = await lbEmbed(ctx, data, lbType, page))
+    else:
+        await ctx.reply(embed = errorEmbed("**Nobody here but us chickens!** There is no data to display!"))
 
 # EMBED BUILDING BELOW
 
@@ -318,33 +329,43 @@ def blockEmbed(blockData):
 async def lbEmbed(ctx, data, lbType, page):
     # Generates leaderboard embeds
 
-    # Calculates index ranges
+    # Calculates index ranges from given page number
     if type(page) is int and page >= 1: 
         startIndex = (page*10) - 10
         endIndex = (page*10) - 1
     else: 
         startIndex = 0
         endIndex = 10
+    
+    # Gets the users between the index points
+    lbData = data[startIndex:endIndex]
 
-    lbData = []
-    for i in data[startIndex:endIndex]:
-        lbData.append(i)
-
+    # If there is results from the given page number
     if len(lbData) >= 1:
-        descriptionString = ""
+        # Determines whether it should be displaying the currency or blocks for lb building
+        if lbType == "Balance": 
+            whichType = CURRENCY
+            whichNumber = 1 # to display currency
+        else: 
+            whichType = "block(s)"
+            if lbType == "Pool Block":
+                whichNumber = 2 # to display pool
+            else:
+                whichNumber = 3 # to display solo
 
+        # Building embed
+        embed = discord.Embed(title=f"{lbType} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
         for i in lbData:
             user = await ctx.bot.fetch_user(i[0])
-            descriptionString += f"{user.name} (`{i[0]}`) {i[1]} {CURRENCY}\n"
+            embed.add_field(name=f"{user.name.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
 
-        descriptionString = descriptionString.replace('_', '\\_')
-
-        return discord.Embed(title=f"{lbType} Leaderboard", description=descriptionString, color=EMB_COLOUR, timestamp=datetime.now())
+        # Returns final leaderboard embed
+        return embed
     else:
-        return None # test
+        return None # If there are no results, send None
 
 def errorEmbed(errorMsg):
-    # Generates the error message embed
+    # Generates the error message embed with a given descriptor
     return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR)
 
 # Admin commands

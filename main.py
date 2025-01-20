@@ -275,7 +275,7 @@ async def plot(ctx):
     # Generates a plot of past 100 block difficulties
     makePlot()
 
-    embed = discord.Embed(title="Past 100 Blocks' Difficulty", description="A plot of past 100 blocks' difficulties:", color=EMB_COLOUR) #creates embed
+    embed = discord.Embed(title="Past 100 Blocks' Difficulty", description="A plot of past 100 blocks' difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
     file = discord.File("chart.png", filename="image.png")
     embed.set_image(url="attachment://image.png")
     await ctx.send(file=file, embed=embed)
@@ -334,7 +334,7 @@ async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
     # Broadcasts to a channel that a block was broken
     channel = client.get_channel(OUTPUT_CHANNEL)
     breaker = await client.fetch_user(breakerUuid)
-    channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=0x000000)
+    channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=EMB_COLOUR, timestamp=datetime.now())
     channelEmbed.add_field(name='Breaker', value=f'{breaker.name} (`{breakerUuid}`)', inline=False)
     if type(reciept) is list: channelEmbed.add_field(name='Transaction IDs', value=f'{ids}', inline=False)
     else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)
@@ -399,7 +399,7 @@ async def lbEmbed(ctx, data, lbType, page):
 
 def errorEmbed(errorMsg):
     # Generates the error message embed with a given descriptor
-    return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR)
+    return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR, timestamp=datetime.now())
 
 # Admin commands
 @client.command(aliases=['ab'])

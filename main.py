@@ -334,7 +334,7 @@ async def blockBrokeEmbed(breakerUuid, reciept, currBlock):
     # Broadcasts to a channel that a block was broken
     channel = client.get_channel(OUTPUT_CHANNEL)
     breaker = await client.fetch_user(breakerUuid)
-    channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=EMB_COLOUR, timestamp=datetime.now())
+    channelEmbed=discord.Embed(title=f'🥳 Block #{currBlock[0]} Completed! 🥳', timestamp=datetime.now(), color=EMB_COLOUR)
     channelEmbed.add_field(name='Breaker', value=f'{breaker.name} (`{breakerUuid}`)', inline=False)
     if type(reciept) is list: channelEmbed.add_field(name='Transaction IDs', value=f'{ids}', inline=False)
     else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)

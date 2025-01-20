@@ -133,7 +133,7 @@ async def send(ctx, reciever, amount):
         elif reciever == str(ctx.author.id): await ctx.reply(embed=errorEmbed("You can't send money to yourself!"))
         elif float(amount) < 0.000001: await ctx.reply(embed=errorEmbed(f"The amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!"))
         elif float(senderData[1]) < float(amount): await ctx.reply(embed=errorEmbed("Your balance is too low!"))
-        else: await ctx.reply(embed=errorEmbed("**Nobody here but us chickens!** If you found this error, please let eld know!"))
+        else: await ctx.reply(embed=errorEmbed("**Nobody here but us chickens!**\nIf you found this error, please let eld know!"))
 
 @client.command(aliases=['t', 'tran', 'log', 'reciept'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
@@ -298,10 +298,10 @@ async def leaderboard(ctx, lbType, *page):
         data = ecDataGet.getPoolBlockDescending()
     
     # Replies built leaderboard embed
-    if data is not None:
+    if len(data) > 0 or data is None:
         await ctx.reply(embed = await lbEmbed(ctx, data, lbType, page))
     else:
-        await ctx.reply(embed = errorEmbed("**Nobody here but us chickens!** There is no data to display!"))
+        await ctx.reply(embed = errorEmbed("**Nobody here but us chickens!**\nThere is no data to display!"))
 
 # EMBED BUILDING BELOW
 

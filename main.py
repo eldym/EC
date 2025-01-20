@@ -276,9 +276,11 @@ async def leaderboard(ctx, lbType, *page):
     # Gives the user leaderboards
 
     # Checks if it should default to page 1 (if there is no given page number or invalid input)
-    if len(page) <= 0 or len(page) >= 2 or type(page) is not int:
+    if len(page) <= 0 or len(page) >= 2:
         page = 1
-    
+    elif type(page) is tuple:
+        page = int(page[0])
+
     # Checks what the user inputs
     bOptions = ['b', 'bal', 'balance']
     sOptions = ['s', 'solo']
@@ -349,7 +351,7 @@ async def lbEmbed(ctx, data, lbType, page):
     # Calculates index ranges from given page number
     if type(page) is int and page >= 1: 
         startIndex = (page*10) - 10
-        endIndex = (page*10) - 1
+        endIndex = (page*10)
     else: 
         startIndex = 0
         endIndex = 10
@@ -372,9 +374,11 @@ async def lbEmbed(ctx, data, lbType, page):
 
         # Building embed
         embed = discord.Embed(title=f"{lbType} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
+        if startIndex == 0: startIndex = 1
         for i in lbData:
             user = await ctx.bot.fetch_user(i[0])
-            embed.add_field(name=f"{user.name.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
+            embed.add_field(name=f"{startIndex}. {user.name.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
+            startIndex += 1
 
         # Returns final leaderboard embed
         return embed

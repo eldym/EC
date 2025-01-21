@@ -11,6 +11,7 @@ def difficulties_plot(difficulties, beginIndex):
     plt.ylabel('Difficulty')
     plt.xlabel('Block #')
     plt.savefig('chart.png', bbox_inches='tight')
+    plt.close()
 
 def makePlot():
     allBlocks = ecDataGet.getAllBlocks()

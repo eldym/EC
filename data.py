@@ -368,8 +368,8 @@ class calculations:
             # Gets the lookback block data for data
             farPrev = ecDataGet.getBlock(to_get)
 
-            # Gets the total of Unix seconds between current block and 5 blocks before
-            obsMineTime = curr[4] - farPrev[4]
+            # Gets the total of Unix seconds between current block break and 5 blocks before
+            obsMineTime = int(time.time()) - farPrev[4]
             
             # Print calculations to console for checking
             print('Block Completed! Here are the block statistics:')

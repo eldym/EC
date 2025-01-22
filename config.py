@@ -1,5 +1,5 @@
 # Bot config
-PREFIXES = ['!', 'ec!', '<@1200004156820303873> '] # Your prefixes
+PREFIXES = ['!', 'ec!'] # Your prefixes
 DEFAULT_PREFIX = PREFIXES[0] # Default/fallback prefix
 CURRENCY = 'EC <:ec:1220995523469643786>' # Currency
 COOLDOWN = 2 # Cooldown in seconds

@@ -7,7 +7,7 @@ from plot import makePlot
 from datetime import datetime
 from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL, ADMIN_ID
 
-client = commands.Bot(command_prefix = PREFIXES , intents=discord.Intents.all(), help_command=None)
+client = commands.Bot(command_prefix = commands.when_mentioned_or(PREFIXES) , intents=discord.Intents.all(), help_command=None)
 
 @client.event
 async def on_ready():

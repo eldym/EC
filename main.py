@@ -5,9 +5,9 @@ from discord.ext import tasks, commands
 from data import *
 from plot import makePlot
 from datetime import datetime
-from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL, ADMIN_ID
+from config import PREFIXES, DEFAULT_PREFIX, CURRENCY, DISPLAY_CURRENCY, COOLDOWN, EMB_COLOUR, TOKEN, EC_THUMBNAIL_LINK, OUTPUT_CHANNEL, ADMIN_ID
 
-client = commands.Bot(command_prefix = commands.when_mentioned_or(PREFIXES) , intents=discord.Intents.all(), help_command=None)
+client = commands.Bot(command_prefix = PREFIXES, intents=discord.Intents.all(), help_command=None)
 
 @client.event
 async def on_ready():
@@ -22,8 +22,13 @@ async def on_ready():
 @tasks.loop()
 async def status():
     # Changes bot status every 20 seconds from status list
-    statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #{ecDataGet.getCurrentBlock()[0]}", f"{int(ecDataGet.getSupply()[0]):,} EC in supply"] # Add/edit status selection to your choosing
+    statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #{ecDataGet.getCurrentBlock()[0]}"] # Add/edit status selection to your choosing
 
+    # Tries to get supply and append, will fail and just pass if there is none
+    try: statuses.append(f"{int(ecDataGet.getSupply()[0]):,} {CURRENCY} in supply")
+    except: pass
+
+    # Loops through the statuses
     for status in statuses:
         await client.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))
         await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
@@ -42,7 +47,7 @@ async def run_automine():
             await blockBrokeEmbed(i[0], reciept, currBlock)
 
 @client.command()
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def create(ctx):
     if ecDataManip.createUser(ctx.author.id) is not False:
         await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
@@ -51,7 +56,7 @@ async def create(ctx):
         await ctx.send(embed=errorEmbed("You already have an account!"))
 
 @client.command(aliases=['b','bal','bank','wallet'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def balance(ctx, *member):
     member = ''.join(member).strip('<@>')
     defaulted = False
@@ -82,7 +87,7 @@ async def balance(ctx, *member):
             embed=discord.Embed(title=embTitle, description=f"{autostatus}", color=EMB_COLOUR, timestamp=datetime.now())
             try: embed.set_thumbnail(url=member.avatar.url)
             except: embed.set_thumbnail(url=f'https://cdn.discordapp.com/embed/avatars/{random.randint(0,5)}.png')    
-            embed.add_field(name="💵 Currency", value=f"{userData[1]} {CURRENCY}", inline=False)
+            embed.add_field(name="💵 Currency", value=f"{userData[1]} {DISPLAY_CURRENCY}", inline=False)
             embed.add_field(name="☑️ Pool Blocks", value=f"{userData[2]:,} block{bGrammar1} broken", inline=False)
             embed.add_field(name="☑️ Solo Blocks", value=f"{userData[3]:,} block{bGrammar2} broken", inline=False)
             embed.add_field(name="☑️ Pooling", value=f"{"TRUE" if userData[4] == 1 else "FALSE"}", inline=False)
@@ -97,7 +102,7 @@ async def balance(ctx, *member):
 # TRANSACTIONAL COMMANDS
 
 @client.command(aliases=['p', 'pay', 'give'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def send(ctx, reciever, amount):
     senderData = ecDataGet.getUser(ctx.author.id)
     reciever = ''.join(reciever).strip('<@>')
@@ -119,9 +124,9 @@ async def send(ctx, reciever, amount):
                     reciever = await ctx.bot.fetch_user(reciever)
 
                     # Embed building
-                    embed=discord.Embed(title="Transaction Success!", description=f"**{float(amount):.6f} {CURRENCY}** was sent to **{reciever.name}**.", color=EMB_COLOUR, timestamp=datetime.now())
+                    embed=discord.Embed(title="Transaction Success!", description=f"**{float(amount):.6f} {DISPLAY_CURRENCY}** was sent to **{reciever.name}**.", color=EMB_COLOUR, timestamp=datetime.now())
                     embed.add_field(name="🧾 Transaction ID", value=f"`{reciept[0]}`", inline=False)
-                    embed.add_field(name="🛃 Fee", value=f"`{reciept[4]}` {CURRENCY}", inline=False)
+                    embed.add_field(name="🛃 Fee", value=f"`{reciept[4]}` {DISPLAY_CURRENCY}", inline=False)
                     embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
                     await ctx.reply(embed=embed)
                 else:
@@ -132,12 +137,12 @@ async def send(ctx, reciever, amount):
         # Reply error outs
         if senderData is None: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
         elif reciever == str(ctx.author.id): await ctx.reply(embed=errorEmbed("You can't send money to yourself!"))
-        elif float(amount) < 0.000001: await ctx.reply(embed=errorEmbed(f"The amount you want to send must be greater than or equal to `0.000001` {CURRENCY}!"))
+        elif float(amount) < 0.000001: await ctx.reply(embed=errorEmbed(f"The amount you want to send must be greater than or equal to `0.000001` {DISPLAY_CURRENCY}!"))
         elif float(senderData[1]) < float(amount): await ctx.reply(embed=errorEmbed("Your balance is too low!"))
         else: await ctx.reply(embed=errorEmbed("**Nobody here but us chickens!**\nIf you found this error, please let eld know!"))
 
 @client.command(aliases=['t', 'tran', 'log', 'reciept'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 
 async def transaction(ctx, id):
     transaction = ecDataGet.getTransaction(id)
@@ -152,8 +157,8 @@ async def transaction(ctx, id):
         if transaction[1] != "Coinbase": embed.add_field(name="📨 Sender", value=f"{sender.name} (`{transaction[1]}`)", inline=False)
         else: embed.add_field(name="📨 Sender", value=f"Coinbase", inline=False)
         embed.add_field(name="📥 Reciever", value=f"{reciever.name} (`{transaction[2]}`)", inline=False)
-        embed.add_field(name="💵 Amount", value=f"`{transaction[3]}` {CURRENCY}", inline=False)
-        embed.add_field(name="🛃 Fee", value=f"`{transaction[4]}` {CURRENCY}", inline=False)
+        embed.add_field(name="💵 Amount", value=f"`{transaction[3]}` {DISPLAY_CURRENCY}", inline=False)
+        embed.add_field(name="🛃 Fee", value=f"`{transaction[4]}` {DISPLAY_CURRENCY}", inline=False)
         embed.add_field(name="⏱️ Time", value=f"<t:{transaction[5]}:f>", inline=False)
         embed.set_footer(text=f"Currency sent by {ctx.author.name}!")
         await ctx.reply(embed=embed)
@@ -162,15 +167,15 @@ async def transaction(ctx, id):
     else: await ctx.reply(embed=errorEmbed("This transaction does not exist!"))
 
 @client.command(aliases=['s'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def supply(ctx):
     # Gives the user the supply of currency
-    await ctx.reply(f"There is currently {ecDataGet.getSupply()[0]} {CURRENCY} in supply.")
+    await ctx.reply(f"There is currently {ecDataGet.getSupply()[0]} {DISPLAY_CURRENCY} in supply.")
 
 # MINING
 
 @client.command(aliases=['m', 'M'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def mine(ctx):
     userData = ecDataGet.getUser(ctx.author.id)
     currBlock = ecDataGet.getCurrentBlock()
@@ -184,7 +189,7 @@ async def mine(ctx):
             embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
             embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
             if ecDataGet.getPoolMiner(ctx.author.id)[2] != 0:
-                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
+                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {DISPLAY_CURRENCY}", inline=False)
         
         await ctx.reply(embed=embed)
 
@@ -201,7 +206,7 @@ async def mine(ctx):
                 embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
                 embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
                 embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
-                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {CURRENCY}", inline=False)
+                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {DISPLAY_CURRENCY}", inline=False)
             # Solo attempt
             else:
                 embed=discord.Embed(title="Guess was unsuccessful!", description="Please try again!", color=EMB_COLOUR, timestamp=datetime.now())
@@ -227,10 +232,10 @@ async def mine(ctx):
     # If user doesn't exist, throw error embed/prompt to create
     else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
 
-# AUTOMINE COMMANDS
+# MINE STATUS SWITCHING COMMANDS
 
 @client.command(aliases=['am', 'auto'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def automine(ctx):
     # Switches the user's mining status
 
@@ -242,7 +247,7 @@ async def automine(ctx):
     else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
 
 @client.command()
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def switch(ctx):
     # Switches the user's pooling status
 
@@ -256,14 +261,14 @@ async def switch(ctx):
 # BLOCK DATA COMMANDS
 
 @client.command(aliases=['bi', 'blockinfo'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def block(ctx, blockNo):
     # Gives the user the block data
     block = ecDataGet.getBlock(blockNo)
     await ctx.reply(embed=blockEmbed(block))
 
 @client.command(aliases=['cb', 'current', 'currentblock'])
-@commands.cooldown(1, 2, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
 async def current_block(ctx):
     # Gives the user the current block data
     curr = ecDataGet.getCurrentBlock()
@@ -348,7 +353,7 @@ def blockEmbed(blockData):
     if blockData is not None:
         embed=discord.Embed(title=f"Block #{blockData[0]} Information", description=f"{"*Current block!*" if blockData == ecDataGet.getCurrentBlock() else ""}", color=EMB_COLOUR)
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
-        embed.add_field(name="💵 Reward Amount", value=f"`{blockData[1]:.6f}` {CURRENCY}", inline=False)
+        embed.add_field(name="💵 Reward Amount", value=f"`{blockData[1]:.6f}` {DISPLAY_CURRENCY}", inline=False)
         embed.add_field(name="⚒️ Difficulty", value=f"`{blockData[2]}`", inline=False)
         if blockData == ecDataGet.getCurrentBlock(): embed.add_field(name="🌎 Current Pool Effort", value=f"{ecDataGet.getPoolShareSum()[0]} Shares", inline=False)
         embed.add_field(name="📊 Diff. Threshold", value=f"`{blockData[3]}`", inline=False)
@@ -375,7 +380,7 @@ async def lbEmbed(ctx, data, lbType, page):
     if len(lbData) >= 1:
         # Determines whether it should be displaying the currency or blocks for lb building
         if lbType == "Balance": 
-            whichType = CURRENCY
+            whichType = DISPLAY_CURRENCY
             whichNumber = 1 # to display currency
         else: 
             whichType = "block(s)"
@@ -401,7 +406,8 @@ def errorEmbed(errorMsg):
     # Generates the error message embed with a given descriptor
     return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR, timestamp=datetime.now())
 
-# Admin commands
+# ADMIN COMMANDS
+
 @client.command(aliases=['ab'])
 @commands.cooldown(1, 2, commands.BucketType.channel)
 async def addBal(ctx, uuid, amount):
@@ -409,7 +415,7 @@ async def addBal(ctx, uuid, amount):
     if ctx.author.id == ADMIN_ID:
         uuid = ''.join(uuid).strip('<@>')
         ecDataManip.updateUserBal(uuid, float(ecDataGet.getUser(uuid)[1]) + float(amount))
-        await ctx.reply(f'Updated user funds by: {amount} {CURRENCY}')
+        await ctx.reply(f'Updated user funds by: {amount} {DISPLAY_CURRENCY}')
 
 @client.command(aliases=['cu'])
 @commands.cooldown(1, 2, commands.BucketType.channel)

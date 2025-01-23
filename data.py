@@ -354,7 +354,7 @@ class calculations:
 
         if curr is not None and curr[0] >= 6:
             if curr[0] >= 3: # 15 minutes lookback
-                # Get data 6 blocks before
+                # Get data 3 blocks before
                 to_get = curr[0]-3
                 expMineTime = 900 # Expected time (s) taken to mine 3 blocks
             else:

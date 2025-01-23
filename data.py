@@ -353,14 +353,10 @@ class calculations:
         curr = ecDataGet.getCurrentBlock()
 
         if curr is not None and curr[0] >= 6:
-            if curr[0] >= 6 and curr[0] < 12: # 30 minutes lookback
+            if curr[0] >= 3: # 15 minutes lookback
                 # Get data 6 blocks before
-                to_get = curr[0]-5
-                expMineTime = 1800 # Expected time (s) taken to mine 6 blocks
-            elif curr[0] >= 12: # 1 hour lookback
-                # Get data 12 blocks before
-                to_get = curr[0]-11
-                expMineTime = 3600 # Expected time (s) taken to mine 12 blocks
+                to_get = curr[0]-3
+                expMineTime = 900 # Expected time (s) taken to mine 3 blocks
             else:
                 print("There was an error with difficulty calculations!")
                 return START_DIFF
@@ -368,9 +364,9 @@ class calculations:
             # Gets the lookback block data for data
             farPrev = ecDataGet.getBlock(to_get)
 
-            # Gets the total of Unix seconds between current block break and 5 blocks before
+            # Gets the total of Unix seconds between current block break and 3 blocks before
             obsMineTime = int(time.time()) - farPrev[4]
-            
+
             # Print calculations to console for checking
             print('Block Completed! Here are the block statistics:')
             print('Averaged time (s):',obsMineTime)

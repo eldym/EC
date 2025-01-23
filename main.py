@@ -276,14 +276,33 @@ async def current_block(ctx):
 
 @client.command(aliases=['dp', 'diff'])
 @commands.cooldown(1, 10, commands.BucketType.channel)
-async def plot(ctx):
-    # Generates a plot of past 30 block difficulties
-    makePlot()
+async def plot(ctx, *data_points):
+    # Generates a plot of past block difficulties - default is 30
+    defaulted = False
 
-    embed = discord.Embed(title="Past 30 Blocks' Difficulty", description="A plot of past 30 blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
-    file = discord.File("chart.png", filename="image.png")
-    embed.set_image(url="attachment://image.png")
-    await ctx.reply(file=file, embed=embed)
+    # Checks if there is a given data points range
+    if len(data_points) <= 0 or len(data_points) >= 2: # If no valid number is given
+        data_points = 31
+        defaulted = True
+    elif type(data_points) is tuple: 
+        data_points = int(data_points[0])
+        if data_points > ecDataGet.getCurrentBlock()[0]: # Checks if range of data being requested would exceed how many blocks currently exist
+            embed = errorEmbed("Cannot access block difficulty data that far!")
+            data_points = None
+    else: 
+        embed = errorEmbed("Cannot access block difficulty data!")
+        data_points = None
+
+    if data_points is not None:
+        makePlot(data_points)
+        if defaulted: data_points -= 1
+
+        embed = discord.Embed(title=f"Past {data_points} Blocks' Difficulty", description=f"A plot of past {data_points} blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
+        file = discord.File("chart.png", filename="image.png")
+        embed.set_image(url="attachment://image.png")
+
+        await ctx.reply(file=file, embed=embed)
+    else: await ctx.reply(embed=embed)
 
 # LEADERBOARD COMMAND
 

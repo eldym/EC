@@ -294,7 +294,7 @@ async def plot(ctx, *data_points):
         data_points = None
 
     if data_points is not None:
-        makePlot(data_points)
+        difficulties_list = makePlot(data_points) # TODO: use difficulty list data for more statistics in this embed
         if defaulted: data_points -= 1
 
         embed = discord.Embed(title=f"Past {data_points} Blocks' Difficulty", description=f"A plot of past {data_points} blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed

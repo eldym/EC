@@ -43,6 +43,8 @@ def makePlot(amount_of_blocks):
     # Sends data points to make chart image file
     difficulties_plot(difficulties, beginIndex)
 
+    return difficulties
+
 # For running in a dedicated terminal
 n = 100
 makePlot(n) 

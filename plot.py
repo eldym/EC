@@ -16,18 +16,21 @@ def difficulties_plot(difficulties, beginIndex):
     plt.ylabel('Difficulty')
     plt.xlabel('Block #')
 
+    # Parameters
+    plt.locator_params(axis='x', nbins=15)
+
     # Saves plotted chart as a png file
     plt.savefig('chart.png', bbox_inches='tight')
     plt.close() # Resets plt
 
-def makePlot():
+def makePlot(amount_of_blocks):
     # Gets block data to make a plot
     allBlocks = ecDataGet.getAllBlocks()
     difficulties = []
 
     # Get beginning index
-    if len(allBlocks) > 31:
-        i = len(allBlocks) - 31
+    if len(allBlocks) > amount_of_blocks:
+        i = len(allBlocks) - amount_of_blocks
     else: i = 0
 
     beginIndex = i
@@ -40,4 +43,6 @@ def makePlot():
     # Sends data points to make chart image file
     difficulties_plot(difficulties, beginIndex)
 
-makePlot() # For running in a dedicated terminal
+# For running in a dedicated terminal
+n = 100
+makePlot(n) 

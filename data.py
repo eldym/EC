@@ -27,9 +27,9 @@ class ecDatabaseCreate:
         else:
             cursor = db.cursor()
             cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, automining BOOL NOT NULL, UNIQUE(uuid))")
-            cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id INT UNSIGNED NOT NULL AUTO_INCREMENT, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, FOREIGN KEY(send_uuid) REFERENCES users(uuid), FOREIGN KEY(recv_uuid) REFERENCES users(uuid))")
-            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, reward DECIMAL(18,6) UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
-            cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_number INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, FOREIGN KEY(send_uuid) REFERENCES users(uuid), FOREIGN KEY(recv_uuid) REFERENCES users(uuid))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, reward DECIMAL(18,6) UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, UNIQUE(block_number))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_number INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_number) REFERENCES block(block_number))")
 
 # Data getting
 class ecDataGet:

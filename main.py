@@ -175,7 +175,7 @@ async def supply(ctx):
 # MINING
 
 @client.command(aliases=['m', 'M'])
-@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.user)
 async def mine(ctx):
     userData = ecDataGet.getUser(ctx.author.id)
     currBlock = ecDataGet.getCurrentBlock()
@@ -235,7 +235,7 @@ async def mine(ctx):
 # MINE STATUS SWITCHING COMMANDS
 
 @client.command(aliases=['am', 'auto'])
-@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.user)
 async def automine(ctx):
     # Switches the user's mining status
 
@@ -247,7 +247,7 @@ async def automine(ctx):
     else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
 
 @client.command()
-@commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
+@commands.cooldown(1, COOLDOWN, commands.BucketType.user)
 async def switch(ctx):
     # Switches the user's pooling status
 

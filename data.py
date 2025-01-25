@@ -1,6 +1,6 @@
 import mysql.connector
 import random
-from config import HB_HOST, DB_USER, DB_PASS, DB_NAME, ERROR_TXT, START_DIFF, START_REWARD, START_DIFF_THRESHOLD
+from config import HB_HOST, DB_USER, DB_PASS, DB_NAME, ERROR_TXT, START_DIFF, START_REWARD, START_DIFF_THRESHOLD, BLOCKS_TO_LOOK_BACK, TARGET_BLOCK_BREAK_TIME
 import time
 
 DB_CONN_ERROR = ERROR_TXT, "\nCannot connect to MySQL database."
@@ -352,33 +352,31 @@ class calculations:
     def calculateDifficulty():
         curr = ecDataGet.getCurrentBlock()
 
-        if curr is not None and curr[0] >= 6:
-            if curr[0] >= 3: # 15 minutes lookback
-                # Get data 3 blocks before
-                to_get = curr[0]-3
-                expMineTime = 900 # Expected time (s) taken to mine 3 blocks
-            else:
-                print("There was an error with difficulty calculations!")
-                return START_DIFF
+        if curr is not None and curr[0] >= BLOCKS_TO_LOOK_BACK:
+            # Get data n blocks before
+            to_get = curr[0]-BLOCKS_TO_LOOK_BACK
 
-            # Gets the lookback block data for data
-            farPrev = ecDataGet.getBlock(to_get)
+            # Gets the lookback block data
+            look_back_blocks = []
+
+            for i in range(BLOCKS_TO_LOOK_BACK):
+                look_back_blocks.append(ecDataGet.getBlock(to_get))
 
             # Gets the total of Unix seconds between current block break and 3 blocks before
             obsMineTime = int(time.time()) - farPrev[4]
 
             # Print calculations to console for checking
             print('Block Completed! Here are the block statistics:')
-            print('Averaged time (s):',obsMineTime)
-            print('Expected time (s):',expMineTime)
-            print(f'Deviation from expected: ×{expMineTime/obsMineTime:.4f}')
-            print(f'Deviation percentage: {expMineTime/obsMineTime*100:.4f}%')
+            print(f'Averaged time (s):',obsMineTime)
+            print(f'Expected time (s):',TARGET_BLOCK_BREAK_TIME)
+            print(f'Deviation from expected: ×{TARGET_BLOCK_BREAK_TIME/obsMineTime:.4f}')
+            print(f'Deviation percentage: {TARGET_BLOCK_BREAK_TIME/obsMineTime*100:.4f}%')
             print()
 
             # Smooths out difficulty increase to prevent extreme difficulty change shock
-            if (expMineTime/obsMineTime) > 2: print('diff multiplied by 2\n'); return curr[2]*(2)
-            elif (expMineTime/obsMineTime) < 1/2: print('diff divided by 2\n'); return curr[2]*(1/2)
-            else: print('diff normal math\n'); return curr[2]*(expMineTime/obsMineTime)
+            if (TARGET_BLOCK_BREAK_TIME/obsMineTime) > 2: print('diff multiplied by 2\n'); return curr[2]*(2)
+            elif (TARGET_BLOCK_BREAK_TIME/obsMineTime) < 1/2: print('diff divided by 2\n'); return curr[2]*(1/2)
+            else: print('diff normal math\n'); return curr[2]*(TARGET_BLOCK_BREAK_TIME/obsMineTime)
         else:
             return START_DIFF
         

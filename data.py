@@ -221,7 +221,7 @@ class ecDataManip:
     def createPoolEffortLog(uuid):
         # Creates a log for a user's pool contribution
         db = ecDataGet.getDB()
-        db.cursor().execute("INSERT INTO pool_b_data (block_number, miner, shares) VALUES (%s,%s,%s)", (int(ecDataGet.getCurrentBlock()[0]), uuid, 1))
+        db.cursor().execute("INSERT INTO pool_b_data (block_id, miner, shares) VALUES (%s,%s,%s)", (int(ecDataGet.getCurrentBlock()[0]), uuid, 1))
         db.commit()
     
     def createTransactionLog(send_uuid, recv_uuid, amount):
@@ -354,31 +354,38 @@ class calculations:
 
         if curr is not None and curr[0] >= BLOCKS_TO_LOOK_BACK:
             # Get data n blocks before
-            to_get = curr[0]-BLOCKS_TO_LOOK_BACK
+            to_get = curr[0]-BLOCKS_TO_LOOK_BACK+1
 
             # Gets the lookback block data
             look_back_blocks = []
-
             for i in range(BLOCKS_TO_LOOK_BACK):
-                look_back_blocks.append(ecDataGet.getBlock(to_get))
+                look_back_blocks.append(ecDataGet.getBlock(to_get+i))
 
-            print(look_back_blocks)
+            # Gets the lookback block difficulties
+            look_back_difficulties = []
+            for i in look_back_blocks:
+                look_back_difficulties.append(i[2])
+            
+            # Calculates the difficulty average
+            diff_average = sum(look_back_difficulties)/BLOCKS_TO_LOOK_BACK
 
             # Gets the total of Unix seconds between current block break and 3 blocks before
-            obsMineTime = int(time.time()) - ecDataGet.getBlock(to_get)[4]
+            obsMineTime = int(time.time()) - look_back_blocks[0][4]
 
             # Print calculations to console for checking
             print('Block Completed! Here are the block statistics:')
             print(f'Averaged time (s):',obsMineTime)
             print(f'Expected time (s):',TARGET_BLOCK_BREAK_TIME)
-            print(f'Deviation from expected: ×{TARGET_BLOCK_BREAK_TIME/obsMineTime:.4f}')
-            print(f'Deviation percentage: {TARGET_BLOCK_BREAK_TIME/obsMineTime*100:.4f}%')
+            print(f'Time deviation from expected: ×{TARGET_BLOCK_BREAK_TIME/obsMineTime:.4f}')
+            print(f'Time deviation percentage: {TARGET_BLOCK_BREAK_TIME/obsMineTime*100:.4f}%')
+            print(f'Averaged difficulty: {diff_average}')
+            print(f'Adjusted difficulty: {int(diff_average*(TARGET_BLOCK_BREAK_TIME/obsMineTime))}')
             print()
 
             # Smooths out difficulty increase to prevent extreme difficulty change shock
             if (TARGET_BLOCK_BREAK_TIME/obsMineTime) > 2: print('diff multiplied by 2\n'); return curr[2]*(2)
             elif (TARGET_BLOCK_BREAK_TIME/obsMineTime) < 1/2: print('diff divided by 2\n'); return curr[2]*(1/2)
-            else: print('diff normal math\n'); return curr[2]*(TARGET_BLOCK_BREAK_TIME/obsMineTime)
+            else: print('diff normal math\n'); return int(diff_average*(TARGET_BLOCK_BREAK_TIME/obsMineTime))
         else:
             return START_DIFF
         

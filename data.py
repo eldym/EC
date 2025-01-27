@@ -357,9 +357,14 @@ class calculations:
     def calculateDifficulty():
         curr = ecDataGet.getCurrentBlock()
 
-        if curr is not None and curr[0] >= BLOCKS_TO_LOOK_BACK:
+        if curr is not None:
             # Get data n blocks before
-            to_get = curr[0]-BLOCKS_TO_LOOK_BACK+1
+            if curr[0] >= BLOCKS_TO_LOOK_BACK:
+                to_get = curr[0]-BLOCKS_TO_LOOK_BACK+1
+                n_blocks = BLOCKS_TO_LOOK_BACK
+            else:
+                to_get = 1
+                n_blocks = curr[0]
 
             # Gets the lookback block data
             look_back_blocks = []
@@ -380,11 +385,11 @@ class calculations:
             # Print calculations to console for checking
             print('Block Completed! Here are the block statistics:')
             print(f'Averaged time (s):',obsMineTime)
-            print(f'Expected time (s):',TARGET_BLOCK_BREAK_TIME*BLOCKS_TO_LOOK_BACK)
-            print(f'Time deviation from expected: ×{(TARGET_BLOCK_BREAK_TIME*BLOCKS_TO_LOOK_BACK)/obsMineTime:.4f}')
-            print(f'Time deviation percentage: {(TARGET_BLOCK_BREAK_TIME*BLOCKS_TO_LOOK_BACK)/obsMineTime*100:.4f}%')
+            print(f'Expected time (s):',TARGET_BLOCK_BREAK_TIME*n_blocks)
+            print(f'Time deviation from expected: ×{(TARGET_BLOCK_BREAK_TIME*n_blocks)/obsMineTime:.4f}')
+            print(f'Time deviation percentage: {(TARGET_BLOCK_BREAK_TIME*n_blocks)/obsMineTime*100:.4f}%')
             print(f'Averaged difficulty: {diff_average}')
-            print(f'Adjusted difficulty: {int(diff_average*((TARGET_BLOCK_BREAK_TIME*BLOCKS_TO_LOOK_BACK)/obsMineTime))}')
+            print(f'Adjusted difficulty: {int(diff_average*((TARGET_BLOCK_BREAK_TIME*n_blocks)/obsMineTime))}')
             print()
 
             # Smooths out difficulty increase to prevent extreme difficulty change shock

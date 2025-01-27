@@ -12,13 +12,14 @@ class ecDatabaseCreate:
         ecDatabaseCreate.sqlDBCreate()
         ecDatabaseCreate.sqlTablesCreate()
         ecDataManip.createBlock()
-        return "ran full create"
+        print("Completed full MySQL EC Database creation.\n")
 
     def sqlDBCreate():
         # Creates the MySQL Database (if it doesn't already exist)
         db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS)
         cursor = db.cursor()
         cursor.execute("CREATE DATABASE IF NOT EXISTS ecdata")
+        print("Created ecdata Database.")
 
     def sqlTablesCreate():
         # Creates the users and transactions tables (if they don't already exist)
@@ -27,9 +28,13 @@ class ecDatabaseCreate:
         else:
             cursor = db.cursor()
             cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, automining BOOL NOT NULL, UNIQUE(uuid))")
+            print("Created users Table.")
             cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
-            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT PRIMARY KEY AUTO_INCREMENT, reward DECIMAL(18,6) UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, UNIQUE(block_number))")
-            cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_id INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_number) REFERENCES block(block_number))")
+            print("Created transactions Table.")
+            cursor.execute("CREATE TABLE IF NOT EXISTS block (block_number INT UNSIGNED PRIMARY KEY AUTO_INCREMENT, reward DECIMAL(18,6) UNSIGNED NOT NULL, difficulty INT UNSIGNED NOT NULL, diff_threshold INT UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL, UNIQUE(block_number))")
+            print("Created block Table.")
+            cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_id INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_id) REFERENCES block(block_number))")
+            print("Created pool_b_data Table.")
 
 # Data getting
 class ecDataGet:

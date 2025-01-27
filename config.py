@@ -28,5 +28,5 @@ DB_NAME = 'ecdata' # MySQL database name
 START_DIFF = 1 # Start difficulty prior to automatic difficulty calculations
 START_DIFF_THRESHOLD = 10 # Number that guess must be less than or equal to this number to break block 
 START_REWARD = 500 # Reward amount upon breaking block
-BLOCKS_TO_LOOK_BACK = 3 # Number of blocks to look back up (used for calculating difficulty)
+BLOCKS_TO_LOOK_BACK = 100 # Number of blocks to look back up (used for calculating difficulty)
 TARGET_BLOCK_BREAK_TIME = 300 # How many seconds should it take for a block to break

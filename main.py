@@ -351,7 +351,11 @@ async def leaderboard(ctx, lbType, *page):
     
     # Replies built leaderboard embed
     if len(data) > 0 or data is None:
-        await ctx.reply(embed = await lbEmbed(ctx, data, lbType, page))
+        embed = await lbEmbed(ctx, data, lbType, page)
+        if embed is not None:
+            await ctx.reply(embed=embed)
+        else:
+            await ctx.reply(embed = errorEmbed("**Nobody here but us chickens!**\nThere is no data to display!"))
     else:
         await ctx.reply(embed = errorEmbed("**Nobody here but us chickens!**\nThere is no data to display!"))
 
@@ -429,6 +433,9 @@ async def lbEmbed(ctx, data, lbType, page):
             user = await ctx.bot.fetch_user(i[0])
             embed.add_field(name=f"{startIndex}. {user.name.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
             startIndex += 1
+        
+        # Shows page number
+        embed.set_footer(text=f"Page {page}")
 
         # Returns final leaderboard embed
         return embed

@@ -22,7 +22,7 @@ async def on_ready():
 @tasks.loop()
 async def status():
     # Changes bot status every 20 seconds from status list
-    statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #{ecDataGet.getCurrentBlock()[0]}", getUpToDateSupply()] # Add/edit status selection to your choosing
+    statuses = [getUpToDateSupply(), "made w/ ❤️ by eld_!", f"EC difficulty: {ecDataGet.getCurrentBlock()[2]}", f"block #{ecDataGet.getCurrentBlock()[0]}"] # Add/edit status selection to your choosing
 
     # Loops through the statuses
     for status in statuses:
@@ -30,11 +30,22 @@ async def status():
         await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
 
 def getUpToDateSupply():
-    # Tries to get supply and append, if fails just sends 0 in supply
-    try: supplyStr = f"{int(ecDataGet.getSupply()[0]):,} {CURRENCY} in supply"
-    except: supplyStr = f"0 {CURRENCY} in supply"
+    # Tries to get supply and append, if fails just states 0 in supply
+    try: supply = int(ecDataGet.getSupply()[0])
+    except: return f"0 {CURRENCY} in supply"
 
-    return supplyStr
+    # Calculates if supply is large enough to shorten
+    # Used modified solution originally by Adam Rosenfield (from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings)
+    magnitude = 0
+    while abs(supply) >= 1000:
+        magnitude += 1
+        supply /= 1000.0
+    
+    # If supply is sufficiently large enough to shorten (greater than 1000) will generate formatted string from divided supply num
+    if magnitude >= 1: supStr = f"{supply:.2f}"
+    else: supStr = supply # Otherwise, just proceed with original number
+
+    return f"{supStr}{['', 'K', 'M', 'B', 'T'][magnitude]} {CURRENCY} in supply" # Creates the abbreviated form of number
 
 @tasks.loop(seconds=10)
 async def run_automine():

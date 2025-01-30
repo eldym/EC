@@ -92,7 +92,7 @@ async def balance(ctx, *member):
             else: embTitle = f"{member.name}\'s Balance"
 
             # Adds a description if the user is automining
-            if userData[5] == 0: autostatus = ''
+            if ecDataGet.getAutoMiner(member.id) is None: autostatus = ''
             else:
                 if member.id == ctx.author.id: autostatus = '*You are currently automining.*'
                 else: autostatus = "*This user is currently automining.*"
@@ -192,10 +192,11 @@ async def supply(ctx):
 @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
 async def mine(ctx):
     userData = ecDataGet.getUser(ctx.author.id)
+    userAutomineStatus = ecDataGet.getAutoMiner(ctx.author.id)
     currBlock = ecDataGet.getCurrentBlock()
     
     # Check if user is automining
-    if userData is not None and userData[5] == 1:
+    if userData is not None and userAutomineStatus is not None:
         # Automine embed
         embed=discord.Embed(title=f"You are automining block #{currBlock[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
@@ -256,6 +257,8 @@ async def automine(ctx):
     # Check if user exists
     if ecDataGet.getUser(ctx.author.id) is not None:
         result = ecDataManip.updateUserAutominingStatus(ctx.author.id)
+        if not result: result="Manual"
+        else: result="Automining"
         embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR) # Replies to user of result
         await ctx.reply(embed=embed)
     else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create

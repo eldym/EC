@@ -27,7 +27,7 @@ class ecDatabaseCreate:
         except: print(DB_CONN_ERROR)
         else:
             cursor = db.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, automining BOOL NOT NULL, UNIQUE(uuid))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, UNIQUE(uuid))")
             print("Created users Table.")
             cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
             print("Created transactions Table.")
@@ -35,6 +35,8 @@ class ecDatabaseCreate:
             print("Created block Table.")
             cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_id INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_id) REFERENCES block(block_number))")
             print("Created pool_b_data Table.")
+            cursor.execute("CREATE TABLE IF NOT EXISTS automining_data (miner_id VARCHAR(20) NOT NULL PRIMARY KEY, session_blocks_broke INT UNSIGNED NOT NULL, session_total_shares INT UNSIGNED NOT NULL, start_unix INT(11) UNSIGNED NOT NULL, FOREIGN KEY(miner_id) REFERENCES users(uuid))")
+            print("Created automining_data Table.")
 
 # Data getting
 class ecDataGet:
@@ -200,11 +202,21 @@ class ecDataGet:
         for data in cursor: pass
         return data
     
+    def getAutoMiner(uuid):
+        # Gets automining users
+        db = ecDataGet.getDB()
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM automining_data WHERE miner_uuid = {uuid}")
+
+        autominer = None
+        for autominer in cursor: pass
+        return autominer
+    
     def getAutoMiners():
         # Gets automining users
         db = ecDataGet.getDB()
         cursor = db.cursor()
-        cursor.execute(f"SELECT * FROM users WHERE automining = 1")
+        cursor.execute(f"SELECT * FROM automining_data")
 
         automining = []
         for user in cursor: 
@@ -218,7 +230,7 @@ class ecDataManip:
         # Creates a new user if the user doesn't have an account
         if ecDataGet.getUser(uuid) is None:
             db = ecDataGet.getDB()
-            db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling, automining) VALUES (%s,%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0, 0))
+            db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling) VALUES (%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0))
             db.commit()
             return ecDataGet.getUser(uuid)
         else: return False
@@ -227,6 +239,12 @@ class ecDataManip:
         # Creates a log for a user's pool contribution
         db = ecDataGet.getDB()
         db.cursor().execute("INSERT INTO pool_b_data (block_id, miner, shares) VALUES (%s,%s,%s)", (int(ecDataGet.getCurrentBlock()[0]), uuid, 1))
+        db.commit()
+    
+    def createAutominingLog(uuid):
+        # Creates a log for a user's pool contribution
+        db = ecDataGet.getDB()
+        db.cursor().execute("INSERT INTO automining_data (miner_uuid, session_blocks_broken, session_total_shares, start_unix) VALUES (%s,%s,%s,%s)", (uuid, 0, 0, int(time.time())))
         db.commit()
     
     def createTransactionLog(send_uuid, recv_uuid, amount):
@@ -257,12 +275,15 @@ class ecDataManip:
     
     def updateUserAutominingStatus(uuid):
         # Updates a user's automated mining setting
-        user = ecDataGet.getUser(uuid)
+        user = ecDataGet.getAutoMiner(uuid)
         db = ecDataGet.getDB()
-        if user[5] <= 0: db.cursor().execute(f"UPDATE users SET automining = automining + 1 WHERE uuid = {uuid}")
-        elif user[5] >= 1: db.cursor().execute(f"UPDATE users SET automining = automining - 1 WHERE uuid = {uuid}")
-        db.commit()
-        return "Automining" if user[5] == 0 else "Manual"
+        if user is not None:
+            db.cursor().execute(f"DELETE FROM automining_data WHERE miner_uuid = {uuid}")
+            db.commit()
+            return False
+        else:
+            ecDataManip.createAutominingLog(uuid)
+            return True
 
     def incrementUserBlockCount(uuid, type):
         # Updates specific user's balance

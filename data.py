@@ -385,7 +385,7 @@ class ecCore:
                     ecDataManip.incrementUserBlockCount(miner[1], 'pool')
                     result = ecCore.transaction("Coinbase", miner[1], block[1]*(miner[2]/summed[0]))
 
-                    if ecDataGet.getAutoMiner(miner[0]) is not None:
+                    if ecDataGet.getAutoMiner(miner[1]) is not None:
                         ecDataManip.incrementUserAutomineSessionPayout(miner[0], block[1]*(miner[2]/summed[0]))
 
                     reciept.append(result)

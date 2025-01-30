@@ -18,8 +18,8 @@ class ecDatabaseCreate:
         # Creates the MySQL Database (if it doesn't already exist)
         db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS)
         cursor = db.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS ecdata")
-        print("Created ecdata Database.")
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
+        print(f"Created {DB_NAME} Database.")
 
     def sqlTablesCreate():
         # Creates the users and transactions tables (if they don't already exist)

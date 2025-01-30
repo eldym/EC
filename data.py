@@ -278,7 +278,7 @@ class ecDataManip:
         user = ecDataGet.getAutoMiner(uuid)
         db = ecDataGet.getDB()
         if user is not None:
-            db.cursor().execute(f"DELETE FROM automining_data WHERE miner_uuid = {uuid}")
+            db.cursor().execute(f"DELETE FROM automining_data WHERE miner_id = {uuid}")
             db.commit()
             return False
         else:
@@ -296,6 +296,18 @@ class ecDataManip:
         # Updates specific user's effort in a pool
         db = ecDataGet.getDB()
         db.cursor().execute(f"UPDATE pool_b_data SET shares = shares + 1 WHERE miner = {uuid}")
+        db.commit()
+
+    def incrementUserAutomineSessionBlockCount(uuid):
+        # Updates specific user's Automine Session Block Count
+        db = ecDataGet.getDB()
+        db.cursor().execute(f"UPDATE automining_data SET session_blocks_broken = session_blocks_broken + 1 WHERE miner_id = {uuid}")
+        db.commit()
+    
+    def incrementUserAutomineSessionHashCount(uuid):
+        # Updates specific user's Automine Session Hash Count
+        db = ecDataGet.getDB()
+        db.cursor().execute(f"UPDATE automining_data SET session_total_shares = session_total_shares + 1 WHERE miner_id = {uuid}")
         db.commit()
 
     def createBlock():
@@ -349,6 +361,7 @@ class ecCore:
     def mine(uuid):
         block = ecDataGet.getCurrentBlock()
         pooling = ecDataGet.getUser(uuid)[4]
+        auto_status = ecDataGet.getAutoMiner(uuid)
         guess = random.randint(0,block[2])
         reciept = None
 
@@ -370,8 +383,15 @@ class ecCore:
             elif pooling == 0: # solo
                 ecDataManip.incrementUserBlockCount(str(uuid), 'solo')
                 reciept = ecCore.transaction("Coinbase", str(uuid), block[1])
+
+            if auto_status is not None:
+                ecDataManip.incrementUserAutomineSessionBlockCount(uuid)
+
             ecDataManip.createBlock()
-            
+
+        if auto_status is not None:
+            ecDataManip.incrementUserAutomineSessionHashCount(uuid)
+
         return guess, reciept
         
 class calculations:

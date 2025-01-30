@@ -386,7 +386,7 @@ class ecCore:
                     result = ecCore.transaction("Coinbase", miner[1], block[1]*(miner[2]/summed[0]))
 
                     if ecDataGet.getAutoMiner(miner[1]) is not None:
-                        ecDataManip.incrementUserAutomineSessionPayout(miner[0], block[1]*(miner[2]/summed[0]))
+                        ecDataManip.incrementUserAutomineSessionPayout(miner[1], block[1]*(miner[2]/summed[0]))
 
                     reciept.append(result)
 

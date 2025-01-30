@@ -200,12 +200,10 @@ async def mine(ctx):
         # Automine embed
         embed=discord.Embed(title=f"You are automining block #{currBlock[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
-        if userData[4] == 1:
-            embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
-            embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares", inline=False)
-            if ecDataGet.getPoolMiner(ctx.author.id)[2] != 0:
-                embed.add_field(name="💵 Estimated Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {DISPLAY_CURRENCY}", inline=False)
-        
+        embed.add_field(name="✅ Session Hashes", value=f"`{userAutomineStatus[2]}` Hashes")
+        embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{userAutomineStatus[1]}` Blocks")
+        embed.add_field(name="💸 Session Payout", value=f"`{userAutomineStatus[3]}` {DISPLAY_CURRENCY}", inline=False)
+        embed.add_field(name="⏱️ Session Start Time", value=f"<t:{userAutomineStatus[4]}:f>", inline=False)
         await ctx.reply(embed=embed)
 
     # First, check if the user exists
@@ -245,6 +243,24 @@ async def mine(ctx):
         await ctx.reply(embed=embed)
     
     # If user doesn't exist, throw error embed/prompt to create
+    else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
+
+@client.command(aliases=['pool', 'pl', 'pd'])
+@commands.cooldown(1, COOLDOWN, commands.BucketType.user)
+async def pool_data(ctx):
+    userData = ecDataGet.getUser(ctx.author.id)
+
+    if userData is not None:
+        if userData[4] == 1:
+            currBlock = ecDataGet.getCurrentBlock()
+            embed=discord.Embed(title=f"Pool Statistics", description=f"These are the current pool\nstatistics for block #{currBlock[0]}.", color=EMB_COLOUR, timestamp=datetime.now())
+            embed.set_thumbnail(url=EC_THUMBNAIL_LINK)
+            embed.add_field(name="✅ Shares You Submitted", value=f"`{ecDataGet.getPoolMiner(ctx.author.id)[2]}` Shares", inline=False)
+            embed.add_field(name="🌎 Global Shares Submitted", value=f"`{ecDataGet.getPoolShareSum()[0]}` Shares")
+            if ecDataGet.getPoolMiner(ctx.author.id)[2] != 0:
+                embed.add_field(name="💵 Estimated Pool Reward", value=f"`{currBlock[1]*(ecDataGet.getPoolMiner(ctx.author.id)[2]/ecDataGet.getPoolShareSum()[0]):.6f}` {DISPLAY_CURRENCY}", inline=False)
+            await ctx.reply(embed=embed)
+        else: await ctx.reply(embed=errorEmbed(f"You aren't pool mining! Run `{DEFAULT_PREFIX}switch` to switch to pool mining."))
     else: await ctx.reply(embed=errorEmbed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
 
 # MINE STATUS SWITCHING COMMANDS

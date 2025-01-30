@@ -35,7 +35,7 @@ class ecDatabaseCreate:
             print("Created block Table.")
             cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_id INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_id) REFERENCES block(block_number))")
             print("Created pool_b_data Table.")
-            cursor.execute("CREATE TABLE IF NOT EXISTS automining_data (miner_id VARCHAR(20) NOT NULL PRIMARY KEY, session_blocks_broke INT UNSIGNED NOT NULL, session_total_shares INT UNSIGNED NOT NULL, start_unix INT(11) UNSIGNED NOT NULL, FOREIGN KEY(miner_id) REFERENCES users(uuid))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS automining_data (miner_id VARCHAR(20) NOT NULL PRIMARY KEY, session_blocks_broken INT UNSIGNED NOT NULL, session_total_shares INT UNSIGNED NOT NULL, start_unix INT(11) UNSIGNED NOT NULL, FOREIGN KEY(miner_id) REFERENCES users(uuid))")
             print("Created automining_data Table.")
 
 # Data getting
@@ -206,7 +206,7 @@ class ecDataGet:
         # Gets automining users
         db = ecDataGet.getDB()
         cursor = db.cursor()
-        cursor.execute(f"SELECT * FROM automining_data WHERE miner_uuid = {uuid}")
+        cursor.execute(f"SELECT * FROM automining_data WHERE miner_id = {uuid}")
 
         autominer = None
         for autominer in cursor: pass
@@ -244,7 +244,7 @@ class ecDataManip:
     def createAutominingLog(uuid):
         # Creates a log for a user's pool contribution
         db = ecDataGet.getDB()
-        db.cursor().execute("INSERT INTO automining_data (miner_uuid, session_blocks_broken, session_total_shares, start_unix) VALUES (%s,%s,%s,%s)", (uuid, 0, 0, int(time.time())))
+        db.cursor().execute("INSERT INTO automining_data (miner_id, session_blocks_broken, session_total_shares, start_unix) VALUES (%s,%s,%s,%s)", (uuid, 0, 0, int(time.time())))
         db.commit()
     
     def createTransactionLog(send_uuid, recv_uuid, amount):
@@ -395,7 +395,8 @@ class calculations:
             # Gets the lookback block difficulties
             look_back_difficulties = []
             for i in look_back_blocks:
-                look_back_difficulties.append(i[2])
+                try: look_back_difficulties.append(i[2])
+                except: pass
             
             # Calculates the difficulty average
             diff_average = sum(look_back_difficulties)/BLOCKS_TO_LOOK_BACK

@@ -35,7 +35,7 @@ class ecDatabaseCreate:
             print("Created block Table.")
             cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_id INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_id) REFERENCES block(block_number))")
             print("Created pool_b_data Table.")
-            cursor.execute("CREATE TABLE IF NOT EXISTS automining_data (miner_id VARCHAR(20) NOT NULL PRIMARY KEY, session_blocks_broken INT UNSIGNED NOT NULL, session_total_shares INT UNSIGNED NOT NULL, start_unix INT(11) UNSIGNED NOT NULL, FOREIGN KEY(miner_id) REFERENCES users(uuid))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS automining_data (miner_id VARCHAR(20) NOT NULL PRIMARY KEY, session_blocks_broken INT UNSIGNED NOT NULL, session_total_shares INT UNSIGNED NOT NULL, session_payout DECIMAL(18,6) UNSIGNED NOT NULL, start_unix INT(11) UNSIGNED NOT NULL, FOREIGN KEY(miner_id) REFERENCES users(uuid))")
             print("Created automining_data Table.")
 
 # Data getting
@@ -244,7 +244,7 @@ class ecDataManip:
     def createAutominingLog(uuid):
         # Creates a log for a user's pool contribution
         db = ecDataGet.getDB()
-        db.cursor().execute("INSERT INTO automining_data (miner_id, session_blocks_broken, session_total_shares, start_unix) VALUES (%s,%s,%s,%s)", (uuid, 0, 0, int(time.time())))
+        db.cursor().execute("INSERT INTO automining_data (miner_id, session_blocks_broken, session_total_shares, session_payout, start_unix) VALUES (%s,%s,%s,%s,%s)", (uuid, 0, 0, 0, int(time.time())))
         db.commit()
     
     def createTransactionLog(send_uuid, recv_uuid, amount):
@@ -308,6 +308,12 @@ class ecDataManip:
         # Updates specific user's Automine Session Hash Count
         db = ecDataGet.getDB()
         db.cursor().execute(f"UPDATE automining_data SET session_total_shares = session_total_shares + 1 WHERE miner_id = {uuid}")
+        db.commit()
+
+    def incrementUserAutomineSessionPayout(uuid, amt):
+        # Updates specific user's Automine Session Hash Count
+        db = ecDataGet.getDB()
+        db.cursor().execute(f"UPDATE automining_data SET session_payout = session_payout + {amt} WHERE miner_id = {uuid}")
         db.commit()
 
     def createBlock():
@@ -374,15 +380,22 @@ class ecCore:
                 reciept = []
                 miners = ecDataGet.getPoolMiners()
                 summed = ecDataGet.getPoolShareSum()
-                print(summed)
+
                 for miner in miners:
                     ecDataManip.incrementUserBlockCount(miner[1], 'pool')
                     result = ecCore.transaction("Coinbase", miner[1], block[1]*(miner[2]/summed[0]))
-                    print(result)
+
+                    if ecDataGet.getAutoMiner(miner[0]) is not None:
+                        ecDataManip.incrementUserAutomineSessionPayout(miner[0], block[1]*(miner[2]/summed[0]))
+
                     reciept.append(result)
+
             elif pooling == 0: # solo
                 ecDataManip.incrementUserBlockCount(str(uuid), 'solo')
                 reciept = ecCore.transaction("Coinbase", str(uuid), block[1])
+
+                if ecDataGet.getAutoMiner(uuid) is not None:
+                    ecDataManip.incrementUserAutomineSessionPayout(uuid, block[1])
 
             if auto_status is not None:
                 ecDataManip.incrementUserAutomineSessionBlockCount(uuid)

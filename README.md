@@ -8,9 +8,9 @@
 # What's EC?
 
 EC is an open-source Discord digital currency and transaction bot written by eldym. It makes use of Python, discord.py, and MySQL.
-It is designed for ease of use and quick deployment in mind, and works as a form of learning to introduce Oracle's MySQL database software alongside the Python programming language.
+It is designed for ease of use and quick deployment in mind, working as a form of learning to introduce MySQL database software alongside the Python programming language.
 
-This project aims to demonstrate the oppurtunities of MySQL through the use of a fun bot that can be deployed and/or modified by anyone at home.
+This project aims to demonstrate the oppurtunities MySQL holds through the use of a fun bot that can be deployed and/or modified by anyone at home.
 
 # NOTICE: Core features have been completed!
 

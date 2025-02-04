@@ -1,14 +1,7 @@
 import discord
 import asyncio
-import json
 
 from discord.ext import commands
-
-def get_config():
-    with open('config.json') as f:
-        return json.load(f)
-
-config = get_config()
 
 class Admin(commands.Cog):
     """
@@ -21,7 +14,8 @@ class Admin(commands.Cog):
     @commands.command(aliases=['ab'])
     async def addBal(self, ctx, uuid, amount):
         # Adds balance to a specific user
-        if ctx.author.id == config["admin_id"]:
+        if ctx.author.id == self.bot.owner_id:
+            print("ab run")
             """uuid = ''.join(uuid).strip('<@>')
             ecDataManip.updateUserBal(uuid, float(ecDataGet.getUser(uuid)[1]) + float(amount))
             await ctx.reply(f'Updated user funds by: {amount} {DISPLAY_CURRENCY}')"""
@@ -29,7 +23,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=['cu'])
     async def createUser(self, ctx, uuid):
         # Force creates a user to have a balance
-        if ctx.author.id == config["admin_id"]:
+        if ctx.author.id == self.bot.owner_id:
             """uuid = ''.join(uuid).strip('<@>')
             ecDataManip.createUser(uuid)
             await ctx.reply(f'Force created user balance.')"""
@@ -37,7 +31,7 @@ class Admin(commands.Cog):
     @commands.command()
     async def kill(self, ctx):
         # Forces the bot to shut down, only use when a catastrophic bug arises!
-        if ctx.author.id == config["admin_id"]:
+        if ctx.author.id == self.bot.owner_id:
             """await ctx.reply("**FORCE SHUTDOWN?**\nPlease say \'yes\' or \'y\' within 15 seconds to complete this action.")
             def check(m):
                 return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel

@@ -13,6 +13,7 @@ def get_config():
 config = get_config()
 
 EMB_COLOUR = 0x000000
+COOLDOWN = config["cooldown"]
 DEFAULT_PREFIX = config["prefixes"][0]
 DISPLAY_CURRENCY = config["display_currency"]
 
@@ -25,16 +26,16 @@ class User(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.cooldown(1, config["cooldown"], commands.BucketType.channel)
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def create(self, ctx):
         if self.bot.database.create_user(ctx.author.id) is not False:
             await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
             await self.balance(ctx, str(ctx.author.id))
         else:
-            await ctx.send(embed=self.errorEmbed("You already have an account!"))
+            await ctx.send(embed=self.bot.error_embed("You already have an account!"))
     
     @commands.command(aliases=['b','bal','bank','wallet'])
-    @commands.cooldown(1, config["cooldown"], commands.BucketType.channel)
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def balance(self, ctx, *member):
         member = ''.join(member).strip('<@>')
         defaulted = False
@@ -68,18 +69,15 @@ class User(commands.Cog):
                 embed.add_field(name="💵 Currency", value=f"{userData[1]} {DISPLAY_CURRENCY}", inline=False)
                 embed.add_field(name="☑️ Pool Blocks", value=f"{userData[2]:,} block{bGrammar1} broken", inline=False)
                 embed.add_field(name="☑️ Solo Blocks", value=f"{userData[3]:,} block{bGrammar2} broken", inline=False)
-                embed.add_field(name="☑️ Pooling", value=f"{"TRUE" if userData[4] == 1 else "FALSE"}", inline=False)
+                embed.add_field(name="🚤 Pooling", value=f"{"TRUE" if userData[4] == 1 else "FALSE"}", inline=False)
                 embed.set_footer(text="Bot made with ❤️ by eld_!")
                 await ctx.reply(embed=embed)
             else:
                 if defaulted or member.id == ctx.author.id: 
                     await self.create(ctx)
                 else:
-                    await ctx.reply(embed=self.error_embed(f"Oop! Looks like {member.name} does not have an account!"))
+                    await ctx.reply(embed=self.bot.error_embed(f"{member.name} does not have an account!"))
 
-    def error_embed(errorMsg):
-        # Generates the error message embed with a given descriptor
-        return discord.Embed(title=f"Error!", description=f"{errorMsg}", color=EMB_COLOUR, timestamp=datetime.now())
 
 async def setup(bot):
     await bot.add_cog(User(bot))

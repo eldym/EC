@@ -3,12 +3,14 @@ import asyncio
 import json
 
 from discord.ext import tasks, commands
+from datetime import datetime
 from database import Database
 
 INITIAL_EXTENSIONS = [
     'cogs.admin',
     'cogs.user',
     'cogs.mining',
+    'cogs.pool',
     'cogs.transactional',
     'cogs.leaderboards'
 ]
@@ -63,7 +65,11 @@ class ec_bot(commands.Bot):
         for status in statuses:
             await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))
             await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
-
+    
+    def error_embed(self, content):
+        # Generates the error message embed with a given descriptor
+        return discord.Embed(title=f"Error!", description=f"{content}", color=0xFF0000, timestamp=datetime.now())
+    
     def run(self):
         super().run(self.token, reconnect=True)
 

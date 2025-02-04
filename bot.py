@@ -3,6 +3,7 @@ import asyncio
 import json
 
 from discord.ext import tasks, commands
+from database import Database
 
 INITIAL_EXTENSIONS = [
     'cogs.admin',
@@ -27,8 +28,10 @@ class ec_bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=config["prefixes"], description="Very good description",intents=discord.Intents.all())
         self.owner_id = config["admin_id"]
+        self.cooldown = config["cooldown"]
         self.token = token["token"]
         self.initial_extensions = INITIAL_EXTENSIONS
+        self.database = None
     
     async def on_ready(self):
         # Starts up the bot!
@@ -41,11 +44,18 @@ class ec_bot(commands.Bot):
             try: await self.load_extension(extension)
             except Exception as e: print(f"ERROR: Extension {extension} did not load!\nException:", e)
         
+        # Database
+        try: self.database = Database()
+        except Exception as e:
+            print("ERROR: Database is not initialized!\nException:", e)
+
         # Status background task
         self.bg_task = self.loop.create_task(self.status())
 
     async def status(self):
-        await self.wait_until_ready()
+        # Creates status loop
+        await self.wait_until_ready() # Waits til the bot gets built, cus you can't change presence on self
+
         # Changes bot status every 20 seconds from status list
         statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: ", f"block #"] # Add/edit status selection to your choosing
         

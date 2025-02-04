@@ -1,8 +1,12 @@
 {
     "prefixes": ["?", "ec!"],
-    "client_id": 1223554501760258078,
     "admin_id": 395368734732189696,
     "cooldown": 2,
     "currency": "EC",
-    "display_currency": "EC <:ec:1220995523469643786>"
+    "display_currency": "EC <:ec:1220995523469643786>",
+
+    "db_host": "localhost",
+    "db_user": "root",
+    "db_pass": "root",
+    "db_name": "ecdata"
 }

@@ -26,7 +26,6 @@ token = get_token()
 class ec_bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=config["prefixes"], description="Very good description",intents=discord.Intents.all())
-        self.client_id = config["client_id"]
         self.owner_id = config["admin_id"]
         self.token = token["token"]
         self.initial_extensions = INITIAL_EXTENSIONS

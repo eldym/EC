@@ -47,7 +47,7 @@ class ec_bot(commands.Bot):
         for extension in self.initial_extensions:
             try: await self.load_extension(extension)
             except Exception as e: print(f"ERROR: Extension {extension} did not load!\nException:", e)
-        
+            else: print(f"{extension} loaded.")
         # Database
         try: self.database = Database()
         except Exception as e:

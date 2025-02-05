@@ -125,6 +125,16 @@ class Database():
         for block in cursor: pass
         return block
     
+    def get_all_blocks(self):
+        # Gets all block data
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM block")
+
+        blocks = []
+        for block in cursor:
+            blocks.append(block)
+        return blocks
+    
     def get_current_block(self):
         # Get current block data
         cursor = self.db.cursor()

@@ -264,14 +264,15 @@ class Database():
                 reciept = []
                 i = 0
                 while i < len(recv_uuid):
-                    reciept.append(self.transaction_aux(recv_uuid[i], send_uuid, sender, amount[i]))
+                    reciept.append(self.__transaction_aux(recv_uuid[i], send_uuid, sender, amount[i]))
                     i += 1
             else: return "Error"
             return reciept
         else:
             return "Your balance is too low."
         
-    def transaction_aux(self, recv_uuid, send_uuid, sender, amount):
+    def __transaction_aux(self, recv_uuid, send_uuid, sender, amount):
+        # Private auxillary function
         recver = self.get_user(recv_uuid)
         try: verify = recver[1]
         except: return False

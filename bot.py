@@ -5,6 +5,7 @@ import json
 from discord.ext import tasks, commands
 from datetime import datetime
 from database import Database
+from cogs.mining import Mining
 
 INITIAL_EXTENSIONS = [
     'cogs.admin',
@@ -52,20 +53,60 @@ class ec_bot(commands.Bot):
             print("ERROR: Database is not initialized!\nException:", e)
 
         # Status background task
-        self.bg_task = self.loop.create_task(self.status())
+        self.bg_task = self.loop.create_task(self.status_loop())
 
-    async def status(self):
+        # Automining background task
+        self.bg_task = self.loop.create_task(self.automine_loop())
+
+    async def status_loop(self):
         # Creates status loop
         await self.wait_until_ready() # Waits til the bot gets built, cus you can't change presence on self
-
-        # Changes bot status every 20 seconds from status list
-        statuses = ["made w/ ❤️ by eld_!", f"EC difficulty: ", f"block #"] # Add/edit status selection to your choosing
         
         # Loops through the statuses
-        for status in statuses:
-            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"{status}"))
+        while not self.is_closed():
+            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"made w/ ❤️ by eld_!"))
             await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
+            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Difficulty: {self.database.get_current_block()[2]}"))
+            await asyncio.sleep(20)
+            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Block #{self.database.get_current_block()[0]}"))
+            await asyncio.sleep(20)
+            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Emission: {self.emission_abbreviated()}"))
+            await asyncio.sleep(20)
+
+    def emission_abbreviated(self):
+        # Tries to get supply and append, if fails just states 0 in supply
+        try: supply = int(self.database.get_supply()[0])
+        except: return f"0 {config["currency"]}"
+
+        # Calculates if supply is large enough to shorten
+        # Used modified solution originally by Adam Rosenfield (from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings)
+        magnitude = 0
+        while abs(supply) >= 1000:
+            magnitude += 1
+            supply /= 1000.0
+        
+        # If supply is sufficiently large enough to shorten (greater than 1000) will generate formatted string from divided supply num
+        if magnitude >= 1: supStr = f"{supply:.2f}"
+        else: supStr = supply # Otherwise, just proceed with original number
+
+        return f"{supStr}{['', 'K', 'M', 'B', 'T'][magnitude]} {config["currency"]}" # Creates the abbreviated form of number
     
+    async def automine_loop(self):
+        # Creates automine loop
+        await self.wait_until_ready()
+
+        while not self.is_closed():
+            for i in self.database.get_auto_miners():
+                currBlock = self.database.get_current_block()
+                guess, reciept = self.database.mine(i[0])
+                if reciept is None: pass
+                else: 
+                    print('User ID:', i[0], 'broke the block. Guess was:', guess)
+                    try: await Mining.block_broke_embed(Mining(self), i[0], reciept, currBlock) # Real bandaid fix
+                    except Exception as e: print(e)
+
+            await asyncio.sleep(10)
+
     def error_embed(self, content):
         # Generates the error message embed with a given descriptor
         return discord.Embed(title=f"Error!", description=f"{content}", color=0xFF0000, timestamp=datetime.now())

@@ -46,6 +46,9 @@ class Database():
         reward = self.calculate_reward()
         diff = self.calculate_difficulty()
 
+        if diff == 0: # Should not ever equal 0
+            diff = START_DIFF
+
         cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD, int(time.time())))
         self.db.commit()
     
@@ -162,6 +165,7 @@ class Database():
         return transaction
     
     def get_pool_miner(self, uuid):
+        # Gets a specific pool miner
         cursor = self.db.cursor()
         cursor.execute(f"SELECT * FROM pool_b_data WHERE miner = {uuid}")
 
@@ -169,7 +173,8 @@ class Database():
         for miner in cursor: pass
         return miner
     
-    def get_pool_miners(self, uuid):
+    def get_pool_miners(self):
+        # Gets all pool miners
         cursor = self.db.cursor()
         cursor.execute(f"SELECT * FROM pool_b_data")
 
@@ -179,6 +184,7 @@ class Database():
         return miners
     
     def get_pool_share_sum(self):
+        # Gets and calculates the total share sum in the pool
         cursor = self.db.cursor()
         cursor.execute("SELECT SUM(shares) FROM pool_b_data")
 
@@ -187,13 +193,23 @@ class Database():
         return data
     
     def get_auto_miner(self, uuid):
-        # Gets automining users
+        # Gets an automining user
         cursor = self.db.cursor()
         cursor.execute(f"SELECT * FROM automining_data WHERE miner_id = {uuid}")
 
         autominer = None
         for autominer in cursor: pass
         return autominer
+    
+    def get_auto_miners(self):
+        # Gets all automining users
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM automining_data")
+
+        miners = []
+        for miner in cursor:
+            miners.append(miner)
+        return miners
     
     def get_balances_descending(self):
         # Get user data in descending order of balance
@@ -224,6 +240,15 @@ class Database():
         for user in cursor: 
             users.append(user)
         return users
+    
+    def get_supply(self):
+        # Gets the total amount of coins in emission
+        cursor = self.db.cursor()
+        cursor.execute("SELECT SUM(balance) FROM users")
+
+        data = None
+        for data in cursor: pass
+        return data
     
     # CORE FUNCTIONS
     
@@ -341,9 +366,9 @@ class Database():
             print()
 
             # Smooths out difficulty increase to prevent extreme difficulty change shock
-            if ((TARGET_TIME*LOOK_BACK)/obsMineTime) > 2: print('diff multiplied by 2\n'); return curr[2]*(2)
-            elif ((TARGET_TIME*LOOK_BACK)/obsMineTime) < 1/2: print('diff divided by 2\n'); return curr[2]*(1/2)
-            else: print('diff normal math\n'); return int(diff_average*((TARGET_TIME*LOOK_BACK)/obsMineTime))
+            if ((TARGET_TIME*LOOK_BACK)/obsMineTime) > 2: print('Difficulty multiplied by 2\n'); return curr[2]*(2)
+            elif ((TARGET_TIME*LOOK_BACK)/obsMineTime) < 1/2: print('Difficulty divided by 2\n'); return curr[2]*(1/2)
+            else: print('Difficulty on normal math\n'); return int(diff_average*((TARGET_TIME*LOOK_BACK)/obsMineTime))
         else:
             return START_DIFF
         

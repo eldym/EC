@@ -12,6 +12,7 @@ INITIAL_EXTENSIONS = [
     'cogs.user',
     'cogs.mining',
     'cogs.blocks',
+    'cogs.statistics',
     'cogs.transactional',
     'cogs.leaderboards'
 ]

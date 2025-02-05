@@ -18,7 +18,7 @@ DISPLAY_CURRENCY = config["display_currency"]
 OUTPUT_CHANNEL = config["output_channel_id"]
 EMB_THUMBNAIL_LINK = config["emb_thumbnail_link"]
 
-class Mining():
+class Mining(commands.Cog):
     """
     ## Mining commands
     """
@@ -82,25 +82,7 @@ class Mining():
         
         # If user doesn't exist, throw error embed/prompt to create
         else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
-
-    @commands.command(aliases=['pool', 'pl', 'pd'])
-    @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
-    async def pool_data(self, ctx):
-        user_data = self.bot.database.get_user(ctx.author.id)
-
-        if user_data is not None:
-            if user_data[4] == 1:
-                currBlock = self.bot.database.get_current_block()
-                embed=discord.Embed(title=f"Pool Statistics", description=f"These are the current pool\nstatistics for block #{currBlock[0]}.", color=EMB_COLOUR, timestamp=datetime.now())
-                embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)
-                embed.add_field(name="✅ Shares You Submitted", value=f"`{self.bot.database.get_pool_miner(ctx.author.id)[2]}` Shares", inline=False)
-                embed.add_field(name="🌎 Global Shares Submitted", value=f"`{self.bot.database.get_pool_share_sum()[0]}` Shares")
-                if self.bot.database.get_pool_miner(ctx.author.id)[2] != 0:
-                    embed.add_field(name="💵 Estimated Pool Reward", value=f"`{currBlock[1]*(self.bot.database.get_pool_miner(ctx.author.id)[2]/self.bot.database.get_pool_share_sum()[0]):.6f}` {DISPLAY_CURRENCY}", inline=False)
-                await ctx.reply(embed=embed)
-            else: await ctx.reply(embed=self.bot.error_embed(f"You aren't pool mining! Run `{DEFAULT_PREFIX}switch` to switch to pool mining."))
-        else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
-
+    
     async def block_broke_embed(self, breaker_uuid, reciept, curr_block):
         # Generates block broken embed
         ids = []
@@ -124,6 +106,50 @@ class Mining():
 
         # Returns transaction IDs
         return ids
+    
+    @commands.command(aliases=['pool', 'pl', 'pd'])
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
+    async def pool_data(self, ctx):
+        user_data = self.bot.database.get_user(ctx.author.id)
+
+        if user_data is not None:
+            if user_data[4] == 1:
+                currBlock = self.bot.database.get_current_block()
+                embed=discord.Embed(title=f"Pool Statistics", description=f"These are the current pool\nstatistics for block #{currBlock[0]}.", color=EMB_COLOUR, timestamp=datetime.now())
+                embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)
+                embed.add_field(name="✅ Shares You Submitted", value=f"`{self.bot.database.get_pool_miner(ctx.author.id)[2]}` Shares", inline=False)
+                embed.add_field(name="🌎 Global Shares Submitted", value=f"`{self.bot.database.get_pool_share_sum()[0]}` Shares")
+                if self.bot.database.get_pool_miner(ctx.author.id)[2] != 0:
+                    embed.add_field(name="💵 Estimated Pool Reward", value=f"`{currBlock[1]*(self.bot.database.get_pool_miner(ctx.author.id)[2]/self.bot.database.get_pool_share_sum()[0]):.6f}` {DISPLAY_CURRENCY}", inline=False)
+                await ctx.reply(embed=embed)
+            else: await ctx.reply(embed=self.bot.error_embed(f"You aren't pool mining! Run `{DEFAULT_PREFIX}switch` to switch to pool mining."))
+        else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
+    
+    @commands.command(aliases=['am', 'auto'])
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
+    async def automine(self, ctx):
+        # Switches the user's mining status
+
+        # Check if user exists
+        if self.bot.database.get_user(ctx.author.id) is not None:
+            result = self.bot.database.update_user_automining_status(ctx.author.id)
+            if not result: result="Manual"
+            else: result="Automining"
+            embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR) # Replies to user of result
+            await ctx.reply(embed=embed)
+        else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
+
+    @commands.command()
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
+    async def switch(self, ctx):
+        # Switches the user's pooling status
+
+        # Check if user exists
+        if self.bot.database.get_user(ctx.author.id) is not None:
+            result = self.bot.database.update_user_pooling_status(ctx.author.id)
+            embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR) # Replies to user of result
+            await ctx.reply(embed=embed)
+        else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
 
 async def setup(bot):
     await bot.add_cog(Mining(bot))

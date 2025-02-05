@@ -1,7 +1,6 @@
 import discord
 import asyncio
 import json
-import random
 
 from discord.ext import commands
 from datetime import datetime
@@ -20,7 +19,7 @@ EMB_THUMBNAIL_LINK = config["emb_thumbnail_link"]
 
 class Transactional(commands.Cog):
     """
-    User commands
+    ## Transaction commands
     """
 
     def __init__(self, bot):

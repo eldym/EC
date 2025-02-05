@@ -19,7 +19,7 @@ DISPLAY_CURRENCY = config["display_currency"]
 
 class User(commands.Cog):
     """
-    User commands
+    ## User commands
     """
 
     def __init__(self, bot):

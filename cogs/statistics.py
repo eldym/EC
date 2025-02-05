@@ -89,3 +89,6 @@ class Statistics(commands.Cog):
         self.difficulties_plot(difficulties, beginIndex)
 
         return difficulties
+    
+async def setup(bot):
+    await bot.add_cog(Statistics(bot))

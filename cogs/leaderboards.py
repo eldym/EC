@@ -61,7 +61,7 @@ class Leaderboards(commands.Cog):
         else:
             await ctx.reply(embed = self.bot.error_embed("**Nobody here but us chickens!**\nThere is no data to display!"))
     
-    async def lb_embed(ctx, data, lbType, page):
+    async def lb_embed(self, ctx, data, lbType, page):
         # Generates leaderboard embeds
 
         # Calculates index ranges from given page number

@@ -1,6 +1,7 @@
 {
     "prefixes": ["?", "ec!"],
     "admin_id": 395368734732189696,
+    "output_channel_id": 1324256907392716841,
     "cooldown": 2,
 
     "currency": "EC",

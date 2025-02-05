@@ -19,6 +19,8 @@ class Database():
     def __init__(self):
         self.db = mysql.connector.connect(host=config["db_host"],user=config["db_user"],passwd=config["db_pass"],database=config["db_name"])
     
+    # CREATORS
+
     def create_user(self, uuid):
         # Creates a new user if the user doesn't have an account
         if self.get_user(uuid) is None:
@@ -57,6 +59,8 @@ class Database():
         self.db.commit()
         return i
     
+    # UPDATERS
+    
     def update_user_bal(self, uuid, new_bal):
         # Updates specific user's balance
         self.db.cursor().execute("UPDATE users SET balance = %s WHERE uuid = %s", (new_bal, uuid))
@@ -80,6 +84,8 @@ class Database():
         else:
             self.create_automining_log(uuid)
             return True
+
+    # INCREMENTERS
 
     def increment_user_block_count(self, uuid, type):
         # Updates specific user's balance
@@ -106,6 +112,8 @@ class Database():
         # Updates specific user's total Automine Session Payout Amount
         self.db.cursor().execute(f"UPDATE automining_data SET session_payout = session_payout + {amt} WHERE miner_id = {uuid}")
         self.db.commit()
+
+    # GETTERS
 
     def get_user(self, uuid):
         # Get specific user's data
@@ -187,6 +195,38 @@ class Database():
         for autominer in cursor: pass
         return autominer
     
+    def get_balances_descending(self):
+        # Get user data in descending order of balance
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM users ORDER BY balance DESC")
+
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
+    
+    def get_pool_block_descending(self):
+        # Get user data in descending order of broken pool blocks
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM users ORDER BY pool_b DESC")
+
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
+    
+    def get_solo_block_descending(self):
+        # Get user data in descending order of broken solo blocks
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM users ORDER BY solo_b DESC")
+
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
+    
+    # CORE FUNCTIONS
+    
     def transaction(self, send_uuid, recv_uuid, amount):
         sender = None
         amount = float(amount)
@@ -259,6 +299,8 @@ class Database():
 
         return guess, reciept
     
+    # CALCULATIONS
+
     def calculate_difficulty(self):
         curr = self.get_current_block()
 

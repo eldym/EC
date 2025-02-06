@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import json
+import random
 
 from discord.ext import tasks, commands
 from datetime import datetime
@@ -32,7 +33,6 @@ class ec_bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=config["prefixes"], description="Very good description",intents=discord.Intents.all())
         self.owner_id = config["admin_id"]
-        self.cooldown = config["cooldown"]
         self.token = token["token"]
         self.initial_extensions = INITIAL_EXTENSIONS
         self.database = None
@@ -98,13 +98,19 @@ class ec_bot(commands.Bot):
 
         while not self.is_closed():
             for i in self.database.get_auto_miners():
-                currBlock = self.database.get_current_block()
+                curr_block = self.database.get_current_block()
                 guess, reciept = self.database.mine(i[0])
+
                 if reciept is None: pass
                 else: 
                     print('User ID:', i[0], 'broke the block. Guess was:', guess)
-                    try: await Mining.block_broke_embed(Mining(self), i[0], reciept, currBlock) # Real bandaid fix
+                    try: 
+                        mining_cog = self.get_cog('Mining')
+                        mining_cog.block_broke_embed(i[0], reciept, curr_block)
                     except Exception as e: print(e)
+                
+                if (random.randint(1,10)==1):
+                    print("rip autominer!") # kill user's autominer, send dm
 
             await asyncio.sleep(10)
 

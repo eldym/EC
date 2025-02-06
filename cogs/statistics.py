@@ -36,7 +36,7 @@ class Statistics(commands.Cog):
             data_points = None
 
         if data_points is not None:
-            difficulties_list = self.make_plot(data_points) # TODO: use difficulty list data for more statistics in this embed
+            difficulties_list = self.__make_plot(data_points) # TODO: use difficulty list data for more statistics in this embed
             if defaulted: data_points -= 1
 
             embed = discord.Embed(title=f"Past {data_points} Blocks' Difficulty", description=f"A plot of past {data_points} blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
@@ -46,7 +46,7 @@ class Statistics(commands.Cog):
             await ctx.reply(file=file, embed=embed)
         else: await ctx.reply(embed=embed)
     
-    def difficulties_plot(self, difficulties, beginIndex):
+    def __difficulties_plot(self, difficulties, beginIndex):
         # Creates x axis tickers
         pos = list(range(len(difficulties)))
         newTickers = list(range(beginIndex, beginIndex+len(difficulties)))
@@ -68,7 +68,7 @@ class Statistics(commands.Cog):
         plt.savefig('chart.png', bbox_inches='tight')
         plt.close() # Resets plt
 
-    def make_plot(self, amount_of_blocks):
+    def __make_plot(self, amount_of_blocks):
         # Gets block data to make a plot
         allBlocks = self.bot.database.get_all_blocks()
         difficulties = []
@@ -86,9 +86,13 @@ class Statistics(commands.Cog):
             i += 1
 
         # Sends data points to make chart image file
-        self.difficulties_plot(difficulties, beginIndex)
+        self.__difficulties_plot(difficulties, beginIndex)
 
         return difficulties
+    
+    @commands.cooldown(1, 10, commands.BucketType.channel)
+    async def ping(self, ctx):
+        pass # TODO add this
     
 async def setup(bot):
     await bot.add_cog(Statistics(bot))

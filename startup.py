@@ -53,7 +53,7 @@ class database_startup():
         except: print(f"{FAIL}Error getting database!{ENDC}\nException:",e)
         else:
             cursor = db.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, UNIQUE(uuid))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, username VARCHAR(20) NOT NULL, UNIQUE(uuid))")
             print(f"{SUCCESS}Created users Table.{ENDC}")
             cursor.execute("CREATE TABLE IF NOT EXISTS transactions (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, send_uuid VARCHAR(20) NOT NULL, recv_uuid VARCHAR(20) NOT NULL, amount DECIMAL(18,6) UNSIGNED NOT NULL, fee DECIMAL(18,6) UNSIGNED NOT NULL, unix_time INT(11) UNSIGNED NOT NULL)")
             print(f"{SUCCESS}Created transactions Table.{ENDC}")

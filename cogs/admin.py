@@ -21,7 +21,7 @@ class Admin(commands.Cog):
         self.bot = bot
     
     @commands.command(aliases=['ab'])
-    async def addBal(self, ctx, uuid, amount):
+    async def add_to_bal(self, ctx, uuid, amount):
         # Adds balance to a specific user
         if ctx.author.id == self.bot.owner_id:
             uuid = ''.join(uuid).strip('<@>')
@@ -29,12 +29,29 @@ class Admin(commands.Cog):
             await ctx.reply(f'Updated user funds by: {amount} {DISPLAY_CURRENCY}')
 
     @commands.command(aliases=['cu'])
-    async def createUser(self, ctx, uuid):
+    async def create_user(self, ctx, uuid):
         # Force creates a user to have a balance
         if ctx.author.id == self.bot.owner_id:
             uuid = ''.join(uuid).strip('<@>')
             self.bot.database.create_user(uuid)
             await ctx.reply(f'Forced user balance creation.')
+
+    @commands.command(aliases=['uu'])
+    async def update_usernames(self, ctx):
+        # Force creates a user to have a balance
+        if ctx.author.id == self.bot.owner_id:
+            list_of_users = self.bot.database.get_all_users()
+            for user in list_of_users:
+                fetched_user = await ctx.bot.fetch_user(user[0])
+
+                if user[5] != fetched_user.name:
+                    self.bot.database.update_username(user[0], fetched_user.name)
+                    print(f"Updated username in database: {user[5]} -> {fetched_user.name}")
+                else: print("its fine")
+
+            await ctx.reply(f'Updated all usernames where applicable.')
+
+    # DANGER ZONE
 
     @commands.command()
     async def kill(self, ctx):

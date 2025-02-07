@@ -106,9 +106,9 @@ class ec_bot(commands.Bot):
                     print('User ID:', i[0], 'broke the block. Guess was:', guess)
                     try: 
                         mining_cog = self.get_cog('Mining')
-                        mining_cog.block_broke_embed(i[0], reciept, curr_block)
+                        await mining_cog.block_broke_embed(i[0], reciept, curr_block)
                     except Exception as e: print(e)
-                    
+
                     if (random.randint(1,10)==1):
                         print("rip autominer!") # kill user's autominer, send dm
                 

@@ -53,7 +53,7 @@ class Leaderboards(commands.Cog):
         
         # Replies built leaderboard embed
         if len(data) > 0 or data is None:
-            embed = await self.lb_embed(ctx, data, lbType, page)
+            embed = await self.lb_embed(data, lbType, page)
             if embed is not None:
                 await ctx.reply(embed=embed)
             else:

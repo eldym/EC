@@ -108,9 +108,11 @@ class ec_bot(commands.Bot):
                         mining_cog = self.get_cog('Mining')
                         mining_cog.block_broke_embed(i[0], reciept, curr_block)
                     except Exception as e: print(e)
+                    
+                    if (random.randint(1,10)==1):
+                        print("rip autominer!") # kill user's autominer, send dm
                 
-                if (random.randint(1,10)==1):
-                    print("rip autominer!") # kill user's autominer, send dm
+                
 
             await asyncio.sleep(10)
 

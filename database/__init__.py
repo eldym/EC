@@ -21,10 +21,10 @@ class Database():
     
     # CREATORS
 
-    def create_user(self, uuid):
+    def create_user(self, uuid, username):
         # Creates a new user if the user doesn't have an account
         if self.get_user(uuid) is None:
-            self.db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling) VALUES (%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0))
+            self.db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling, username) VALUES (%s,%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0, username))
             self.db.commit()
             return self.get_user(uuid)
         else: return False
@@ -87,6 +87,11 @@ class Database():
         else:
             self.create_automining_log(uuid)
             return True
+    
+    def update_username(self, uuid, new_username):
+        # Updates specific user's username
+        self.db.cursor().execute("UPDATE users SET username = %s WHERE uuid = %s", (new_username, uuid))
+        self.db.commit()
 
     # INCREMENTERS
 
@@ -126,6 +131,16 @@ class Database():
         user = None
         for user in cursor: pass
         return user
+    
+    def get_all_users(self):
+        # Gets all user data
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM users")
+        
+        users = []
+        for user in cursor: 
+            users.append(user)
+        return users
         
     def get_block(self, block_number):
         # Get specific block data
@@ -259,7 +274,7 @@ class Database():
 
         if send_uuid == "Coinbase" or float(sender[1]) >= amount:
             if type(recv_uuid) is str:
-                reciept = self.transaction_aux(recv_uuid, send_uuid, sender, amount)
+                reciept = self.__transaction_aux(recv_uuid, send_uuid, sender, amount)
             elif type(recv_uuid) is list and type(amount) is list: # WIP
                 reciept = []
                 i = 0

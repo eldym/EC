@@ -23,7 +23,7 @@ class Leaderboards(commands.Cog):
         self.bot = bot
     
     @commands.command(aliases=['lb', 'leader', 'board'])
-    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.cooldown(1, 2, commands.BucketType.channel)
     async def leaderboard(self, ctx, lbType, *page):
         # Gives the user leaderboards
 
@@ -61,7 +61,7 @@ class Leaderboards(commands.Cog):
         else:
             await ctx.reply(embed = self.bot.error_embed("**Nobody here but us chickens!**\nThere is no data to display!"))
     
-    async def lb_embed(self, ctx, data, lbType, page):
+    async def lb_embed(self, data, lbType, page):
         # Generates leaderboard embeds
 
         # Calculates index ranges from given page number
@@ -92,8 +92,8 @@ class Leaderboards(commands.Cog):
             embed = discord.Embed(title=f"{lbType} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
             startIndex += 1
             for i in lbData:
-                user = await ctx.bot.fetch_user(i[0])
-                embed.add_field(name=f"{startIndex}. {user.name.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
+                username = i[5]
+                embed.add_field(name=f"{startIndex}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
                 startIndex += 1
             
             # Shows page number

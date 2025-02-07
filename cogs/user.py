@@ -28,7 +28,7 @@ class User(commands.Cog):
     @commands.command()
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def create(self, ctx):
-        if self.bot.database.create_user(ctx.author.id) is not False:
+        if self.bot.database.create_user(ctx.author.id, ctx.author.name) is not False:
             await ctx.send(f"Congratulations! Your account has been made. Run `{DEFAULT_PREFIX}help` for more commands to continue!")
             await self.balance(ctx, str(ctx.author.id))
         else:
@@ -46,6 +46,11 @@ class User(commands.Cog):
             userData = self.bot.database.get_user(member.id)
 
             if userData is not None:
+                # Check if username updated
+                if member.name != userData[5]:
+                    self.bot.database.update_username(member.id, member.name)
+                    print(f"Updated username in database: {userData[5]} -> {member.name}")
+
                 # Block or blocks?
                 if userData[2] != 1: bGrammar1 = 's'
                 else: bGrammar1 = ''

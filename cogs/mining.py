@@ -36,13 +36,7 @@ class Mining(commands.Cog):
         # Check if user is automining
         if user_data is not None and user_automine_status is not None:
             # Automine embed
-            embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
-            embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)
-            embed.add_field(name="✅ Session Hashes", value=f"`{user_automine_status[2]}` Hashes")
-            embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]}` Blocks")
-            embed.add_field(name="💸 Session Payout", value=f"`{user_automine_status[3]}` {DISPLAY_CURRENCY}", inline=False)
-            embed.add_field(name="⏱️ Session Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=self.autominer_embed(curr_block, user_automine_status))
 
         # First, check if the user exists
         elif user_data is not None:
@@ -83,6 +77,18 @@ class Mining(commands.Cog):
         # If user doesn't exist, throw error embed/prompt to create
         else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
     
+    def autominer_embed(curr_block, user_automine_status):
+        # Generates autominer info embed
+        embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
+        embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)
+        embed.add_field(name="✅ Session Hashes", value=f"`{user_automine_status[2]}` Hashes")
+        embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]}` Blocks")
+        embed.add_field(name="💸 Session Payout", value=f"`{user_automine_status[3]}` {DISPLAY_CURRENCY}", inline=False)
+        embed.add_field(name="⏱️ Session Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
+
+        # Return built embed
+        return embed
+    
     async def block_broke_embed(self, breaker_uuid, reciept, curr_block):
         # Generates block broken embed
         ids = []
@@ -97,9 +103,9 @@ class Mining(commands.Cog):
 
         # Broadcasts to a channel that a block was broken
         channel = self.bot.get_channel(OUTPUT_CHANNEL)
-        breaker = await self.bot.fetch_user(breaker_uuid)
+        breaker = self.bot.database.get_user(breaker_uuid)
         channelEmbed=discord.Embed(title=f'🥳 Block #{curr_block[0]} Completed! 🥳', timestamp=datetime.now(), color=EMB_COLOUR)
-        channelEmbed.add_field(name='Breaker', value=f'{breaker.name} (`{breaker_uuid}`)', inline=False)
+        channelEmbed.add_field(name='Breaker', value=f'{breaker[5]} (`{breaker_uuid}`)', inline=False)
         if type(reciept) is list: channelEmbed.add_field(name='Transaction IDs', value=f'{ids}', inline=False)
         else: channelEmbed.add_field(name='Transaction IDs', value=f'{reciept[0]}', inline=False)
         await channel.send(embed=channelEmbed)
@@ -150,6 +156,9 @@ class Mining(commands.Cog):
             embed=discord.Embed(title=f"You have switched to {result} Mining!", color=EMB_COLOUR) # Replies to user of result
             await ctx.reply(embed=embed)
         else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
+
+    async def autominer_broken():
+        pass
 
 async def setup(bot):
     await bot.add_cog(Mining(bot))

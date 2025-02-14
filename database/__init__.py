@@ -151,6 +151,26 @@ class Database():
         for block in cursor: pass
         return block
     
+    def get_blocks_between(self, start, end):
+        # Get specific block data given a start and end block number
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM block WHERE block_number BETWEEN {start} AND {end}")
+
+        blocks = []
+        for block in cursor:
+            blocks.append(block)
+        return blocks
+    
+    def get_blocks_from_current(self, lookback_amt):
+        # Get specific block data given how many blocks before current
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM block WHERE block_number BETWEEN ((SELECT MAX(block_number) FROM block) - {lookback_amt}) AND (SELECT MAX(block_number) FROM block)")
+
+        blocks = []
+        for block in cursor:
+            blocks.append(block)
+        return blocks
+
     def get_all_blocks(self):
         # Gets all block data
         cursor = self.db.cursor()

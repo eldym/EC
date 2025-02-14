@@ -50,7 +50,7 @@ class database_startup():
     def mysql_tables_create(self):
         # Creates the users and transactions tables (if they don't already exist)
         try: db = mysql.connector.connect(host=HB_HOST,user=DB_USER,passwd=DB_PASS,database=DB_NAME)
-        except: print(f"{FAIL}Error getting database!{ENDC}\nException:",e)
+        except Exception as e: print(f"{FAIL}Error getting database!{ENDC}\nException:",e)
         else:
             cursor = db.cursor()
             cursor.execute("CREATE TABLE IF NOT EXISTS users (uuid VARCHAR(20) NOT NULL PRIMARY KEY, balance DECIMAL(18,6) UNSIGNED NOT NULL, pool_b MEDIUMINT UNSIGNED NOT NULL, solo_b MEDIUMINT UNSIGNED NOT NULL, pooling BOOL NOT NULL, username VARCHAR(20) NOT NULL, UNIQUE(uuid))")

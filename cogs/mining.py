@@ -77,7 +77,7 @@ class Mining(commands.Cog):
         # If user doesn't exist, throw error embed/prompt to create
         else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start."))
     
-    def autominer_embed(curr_block, user_automine_status):
+    def autominer_embed(self, curr_block, user_automine_status):
         # Generates autominer info embed
         embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)

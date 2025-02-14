@@ -46,16 +46,16 @@ class Statistics(commands.Cog):
             await ctx.reply(file=file, embed=embed)
         else: await ctx.reply(embed=embed)
     
-    def __difficulties_plot(self, difficulties, beginIndex):
+    def __difficulties_plot(self, difficulties, begin_index):
         # Creates x axis tickers
         pos = list(range(len(difficulties)))
-        newTickers = list(range(beginIndex, beginIndex+len(difficulties)))
+        new_tickers = list(range(begin_index, begin_index+len(difficulties)))
 
         # Plots the data of difficulties
         plt.plot(difficulties)
 
         # Creates custom tickers that properly display the block numbers
-        plt.xticks(pos, newTickers, rotation=90)
+        plt.xticks(pos, new_tickers, rotation=90)
 
         # Labels
         plt.ylabel('Difficulty')
@@ -70,23 +70,20 @@ class Statistics(commands.Cog):
 
     def __make_plot(self, amount_of_blocks):
         # Gets block data to make a plot
-        allBlocks = self.bot.database.get_all_blocks()
+        all_blocks = self.bot.database.get_blocks_from_current(amount_of_blocks)
         difficulties = []
 
         # Get beginning index
-        if len(allBlocks) > amount_of_blocks:
-            i = len(allBlocks) - amount_of_blocks
-        else: i = 0
-
-        beginIndex = i
+        i = 0
+        begin_index = all_blocks[0][0]
         
         # Appends appropriate data points
-        while i < len(allBlocks):
-            difficulties.append(allBlocks[i][2])
+        while i < len(all_blocks):
+            difficulties.append(all_blocks[i][2])
             i += 1
 
         # Sends data points to make chart image file
-        self.__difficulties_plot(difficulties, beginIndex)
+        self.__difficulties_plot(difficulties, begin_index)
 
         return difficulties
     

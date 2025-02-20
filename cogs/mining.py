@@ -79,7 +79,7 @@ class Mining(commands.Cog):
     
     def autominer_embed(self, curr_block, user_automine_status):
         # Generates autominer info embed
-        embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", description="*Note: You must disable automining to manually\ncontribute to breaking the block!*", color=EMB_COLOUR, timestamp=datetime.now())
+        embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)
         embed.add_field(name="✅ Session Hashes", value=f"`{user_automine_status[2]}` Hashes")
         embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]}` Blocks")

@@ -112,10 +112,17 @@ class ec_bot(commands.Bot):
 
                         # 1 in 10 chance autominer breaks, this is to nerf automining lol
                         if (random.randint(1,10)==1):
-                            self.database.update_user_automining_status(i[0])
-                            user = await self.fetch_user(i[0])
-                            await user.send(f"Your automine has broken!  Please run `{config["prefixes"]}am` to turn it back on.")
-                            print(f"User ID: {i[0]}'s autominer broke down!") # kill user's autominer, send dm
+                            # Get autominer data
+                            automminer_data = self.bot.database.get_auto_miner(i[0])
+                            mining_cog = self.get_cog('Mining')
+
+                            embed = mining_cog.autominer_died_embed(curr_block, automminer_data) # Creates embed for dead autominer
+                            user = await self.fetch_user(i[0]) # Fetches the user
+                            await user.send(f"Your automine has broken!  Please run `{config["prefixes"]}am` to turn it back on.") # Notifies that their autominer crashed
+                            await user.send(embed=embed) # Send final automine stats
+                            
+                            self.database.update_user_automining_status(i[0]) # Updates their automining status
+                            print(f"User ID: {i[0]}'s autominer broke down!")
 
             await asyncio.sleep(10)
 

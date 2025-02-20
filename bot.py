@@ -98,23 +98,24 @@ class ec_bot(commands.Bot):
 
         while not self.is_closed():
             for i in self.database.get_auto_miners():
-                curr_block = self.database.get_current_block()
-                guess, reciept = self.database.mine(i[0])
+                if (random.randint(1,3)<=2): # 2/3 chance that automine successfully adds a hash
+                    curr_block = self.database.get_current_block()
+                    guess, reciept = self.database.mine(i[0])
 
-                if reciept is None: pass
-                else: 
-                    print('User ID:', i[0], 'broke the block. Guess was:', guess)
-                    try: 
-                        mining_cog = self.get_cog('Mining')
-                        await mining_cog.block_broke_embed(i[0], reciept, curr_block)
-                    except Exception as e: print(e)
+                    if reciept is None: pass
+                    else: 
+                        print('User ID:', i[0], 'broke the block. Guess was:', guess)
+                        try: 
+                            mining_cog = self.get_cog('Mining')
+                            await mining_cog.block_broke_embed(i[0], reciept, curr_block)
+                        except Exception as e: print(e)
 
-                    # 1 in 10 chance autominer breaks, this is to nerf automining lol
-                    if (random.randint(1,10)==1):
-                        #self.database.update_user_automining_status(i[0])
-                        #user = await self.fetch_user(i[0])
-                        #await user.send(f"Your automine has broken!  Please run `{config["prefixes"]}am` to turn it back on.")
-                        print(f"User ID: {i[0]}'s autominer broke down!") # kill user's autominer, send dm
+                        # 1 in 10 chance autominer breaks, this is to nerf automining lol
+                        if (random.randint(1,10)==1):
+                            self.database.update_user_automining_status(i[0])
+                            user = await self.fetch_user(i[0])
+                            await user.send(f"Your automine has broken!  Please run `{config["prefixes"]}am` to turn it back on.")
+                            print(f"User ID: {i[0]}'s autominer broke down!") # kill user's autominer, send dm
 
             await asyncio.sleep(10)
 

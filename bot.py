@@ -109,10 +109,12 @@ class ec_bot(commands.Bot):
                         await mining_cog.block_broke_embed(i[0], reciept, curr_block)
                     except Exception as e: print(e)
 
+                    # 1 in 10 chance autominer breaks, this is to nerf automining lol
                     if (random.randint(1,10)==1):
-                        print("rip autominer!") # kill user's autominer, send dm
-                
-                
+                        #self.database.update_user_automining_status(i[0])
+                        #user = await self.fetch_user(i[0])
+                        #await user.send(f"Your automine has broken!  Please run `{config["prefixes"]}am` to turn it back on.")
+                        print(f"User ID: {i[0]}'s autominer broke down!") # kill user's autominer, send dm
 
             await asyncio.sleep(10)
 

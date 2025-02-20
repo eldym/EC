@@ -4,7 +4,7 @@
   <h3 align="center">Welcome to the EC Project!</h3>
 </p>
 <p align="center">
-  <a href="https://discord.gg/xqudUnVMAW"><img src="https://img.shields.io/discord/1045201509924741140"></a>
+  <a href="https://discord.gg/xqudUnVMAW"><img src="https://img.shields.io/discord/1045201509924741140?logo=discord"></a>
 </p>
 
 # What's EC?

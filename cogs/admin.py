@@ -19,6 +19,10 @@ class Admin(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.command()
+    async def ping(self, ctx):
+        await ctx.reply(f"**Latency:** `{self.bot.latency*1000} ms`")
     
     @commands.command(aliases=['ab'])
     async def add_to_bal(self, ctx, uuid, amount):

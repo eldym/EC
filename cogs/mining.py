@@ -89,6 +89,17 @@ class Mining(commands.Cog):
         # Return built embed
         return embed
     
+    def autominer_died_embed(self, user_automine_status):
+        # Generates autominer info embed when the autominer dies (or is turned off)
+        embed=discord.Embed(title=f"Your autominer has stopped!", description="Your autominer statistics:", color=EMB_COLOUR, timestamp=datetime.now())
+        embed.set_thumbnail(url=EMB_THUMBNAIL_LINK)
+        embed.add_field(name="✅ Total Hashes Submitted", value=f"`{user_automine_status[2]}` Hashes")
+        embed.add_field(name="⛏️ Total Blocks Broken", value=f"`{user_automine_status[1]}` Blocks")
+        embed.add_field(name="💸 End Session Payout", value=f"`{user_automine_status[3]}` {DISPLAY_CURRENCY}", inline=False)
+        embed.add_field(name="⏱️ Automining Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
+
+        return embed
+    
     async def block_broke_embed(self, breaker_uuid, reciept, curr_block):
         # Generates block broken embed
         ids = []
@@ -138,11 +149,18 @@ class Mining(commands.Cog):
 
         # Check if user exists
         if self.bot.database.get_user(ctx.author.id) is not None:
+            user_automine_status = self.bot.database.get_auto_miner(ctx.author.id)
             result = self.bot.database.update_user_automining_status(ctx.author.id)
-            if not result: result="Manual"
+            if not result: 
+                result="Manual"
+                dead = self.autominer_died_embed(user_automine_status)
             else: result="Automining"
             embed=discord.Embed(title=f"You have switched to {result}!", color=EMB_COLOUR) # Replies to user of result
             await ctx.reply(embed=embed)
+
+            try: await ctx.reply(embed=dead)
+            except: pass
+            
         else: await ctx.reply(embed=self.bot.error_embed(f"You do not have an account yet! Please run `{DEFAULT_PREFIX}create` to start.")) # If no account, prompt to create
 
     @commands.command()

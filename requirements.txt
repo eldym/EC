@@ -1,2 +1,2 @@
 discord
-mysql-connector
+mysql-connector-python

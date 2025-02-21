@@ -110,19 +110,22 @@ class ec_bot(commands.Bot):
                             await mining_cog.block_broke_embed(i[0], reciept, curr_block)
                         except Exception as e: print(e)
 
-                        # 1 in 10 chance autominer breaks, this is to nerf automining lol
-                        if (random.randint(1,10)==1):
-                            # Get autominer data
-                            automminer_data = self.bot.database.get_auto_miner(i[0])
-                            mining_cog = self.get_cog('Mining')
+                        if (random.randint(1,10)==1): # 1/10 chance autominer breaks, this is to nerf automining lol
+                            try:
+                                # Get autominer data
+                                automminer_data = self.database.get_auto_miner(i[0])
+                                self.get_cog('Mining')
 
-                            embed = mining_cog.autominer_died_embed(curr_block, automminer_data) # Creates embed for dead autominer
-                            user = await self.fetch_user(i[0]) # Fetches the user
-                            await user.send(f"Your automine has broken!  Please run `{config["prefixes"]}am` to turn it back on.") # Notifies that their autominer crashed
-                            await user.send(embed=embed) # Send final automine stats
-                            
-                            self.database.update_user_automining_status(i[0]) # Updates their automining status
-                            print(f"User ID: {i[0]}'s autominer broke down!")
+                                embed = mining_cog.autominer_died_embed(automminer_data) # Creates embed for dead autominer
+                                user = await self.fetch_user(i[0]) # Fetches the user
+                                if (random.randint(1,100)<100): await user.send(f"Uh oh!  Your autominer has broken!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Notifies that their autominer crashed
+                                else: user.send(f"Wha-!?  How did it get in here!?  A fox was nibbling at your autominer's cables!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Rare 1/100 find!
+                                await user.send(embed=embed) # Send final automine stats
+                                
+                                self.database.update_user_automining_status(i[0]) # Updates their automining status
+                                print(f"User ID: {i[0]}'s autominer broke down!")
+                            except Exception as e: 
+                                print(e)
 
             await asyncio.sleep(10)
 

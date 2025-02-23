@@ -119,7 +119,7 @@ class ec_bot(commands.Bot):
                                 embed = mining_cog.autominer_died_embed(automminer_data) # Creates embed for dead autominer
                                 user = await self.fetch_user(i[0]) # Fetches the user
                                 if (random.randint(1,100)<100): await user.send(f"Uh oh!  Your autominer has broken!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Notifies that their autominer crashed
-                                else: user.send(f"Wha-!?  How did it get in here!?  A fox was nibbling at your autominer's cables!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Rare 1/100 find!
+                                else: await user.send(f"Wha-!?  How did it get in here!?  A fox was nibbling at your autominer's cables!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Rare 1/100 find!
                                 await user.send(embed=embed) # Send final automine stats
                                 
                                 self.database.update_user_automining_status(i[0]) # Updates their automining status

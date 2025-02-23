@@ -6,7 +6,14 @@ import matplotlib.pyplot as plt
 from discord.ext import commands
 from datetime import datetime
 
+def get_config():
+    with open('config.json') as f:
+        return json.load(f)
+
+config = get_config()
+
 EMB_COLOUR = 0x000000
+DISPLAY_CURRENCY = config["display_currency"]
 
 class Statistics(commands.Cog):
     """
@@ -87,9 +94,13 @@ class Statistics(commands.Cog):
 
         return difficulties
     
-    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.command()
     async def ping(self, ctx):
-        pass # TODO add this
+        await ctx.reply(f"**Latency:** `{self.bot.latency*1000} ms`")
+    
+    @commands.command()
+    async def supply(self, ctx):
+        await ctx.reply(f"There is currently {self.bot.get_supply()[0]} {DISPLAY_CURRENCY} in supply.")
     
 async def setup(bot):
     await bot.add_cog(Statistics(bot))

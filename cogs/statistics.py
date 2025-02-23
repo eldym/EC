@@ -98,7 +98,7 @@ class Statistics(commands.Cog):
     async def ping(self, ctx):
         await ctx.reply(f"**Latency:** `{self.bot.latency*1000} ms`")
     
-    @commands.command()
+    @commands.command(aliases=['s'])
     async def supply(self, ctx):
         await ctx.reply(f"There is currently {self.bot.get_supply()[0]} {DISPLAY_CURRENCY} in supply.")
     

@@ -100,7 +100,7 @@ class Statistics(commands.Cog):
     
     @commands.command(aliases=['s'])
     async def supply(self, ctx):
-        await ctx.reply(f"There is currently {self.bot.get_supply()[0]} {DISPLAY_CURRENCY} in supply.")
+        await ctx.reply(f"There is currently {self.bot.database.get_supply()[0]} {DISPLAY_CURRENCY} in supply.")
     
 async def setup(bot):
     await bot.add_cog(Statistics(bot))

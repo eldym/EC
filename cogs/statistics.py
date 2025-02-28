@@ -96,7 +96,7 @@ class Statistics(commands.Cog):
     
     @commands.command()
     async def ping(self, ctx):
-        await ctx.reply(f"**Latency:** `{self.bot.latency*1000} ms`")
+        await ctx.reply(f"**Latency:** `{self.bot.latency*1000:.2f} ms`")
     
     @commands.command(aliases=['s'])
     async def supply(self, ctx):

@@ -20,7 +20,7 @@ EMB_THUMBNAIL_LINK = config["emb_thumbnail_link"]
 
 class Mining(commands.Cog):
     """
-    ## Mining commands
+    Mining commands
     """
 
     def __init__(self, bot):

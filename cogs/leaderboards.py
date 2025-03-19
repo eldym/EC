@@ -16,7 +16,7 @@ DISPLAY_CURRENCY = config["display_currency"]
 
 class Leaderboards(commands.Cog):
     """
-    ## Mining commands
+    Mining commands
     """
 
     def __init__(self, bot):

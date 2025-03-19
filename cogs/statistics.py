@@ -17,7 +17,7 @@ DISPLAY_CURRENCY = config["display_currency"]
 
 class Statistics(commands.Cog):
     """
-    ## Statistics commands
+    Statistics commands
     """
 
     def __init__(self, bot):

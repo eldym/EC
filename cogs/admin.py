@@ -14,7 +14,7 @@ DISPLAY_CURRENCY = config["display_currency"]
 
 class Admin(commands.Cog):
     """
-    ## Admin commands
+    Admin commands
     """
 
     def __init__(self, bot):

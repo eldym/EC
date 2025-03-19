@@ -20,7 +20,7 @@ EMB_THUMBNAIL_LINK = config["emb_thumbnail_link"]
 
 class Blocks(commands.Cog):
     """
-    ## Block commands
+    Block commands
     """
 
     def __init__(self, bot):

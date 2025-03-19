@@ -19,7 +19,7 @@ EMB_THUMBNAIL_LINK = config["emb_thumbnail_link"]
 
 class Transactional(commands.Cog):
     """
-    ## Transaction commands
+    Transaction commands
     """
 
     def __init__(self, bot):

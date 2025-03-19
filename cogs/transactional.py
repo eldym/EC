@@ -89,5 +89,15 @@ class Transactional(commands.Cog):
         # If transaction doesn't exist, throw error embed
         else: await ctx.reply(embed=self.bot.error_embed("This transaction does not exist!"))
 
+    @commands.command(aliases=['ts','trans'])
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
+    async def transactions(self, ctx, *, args=None):
+        pass
+        """if args is None:
+            member_id = ctx.author.id
+            page = 1
+        else:
+            pass"""
+        
 async def setup(bot):
     await bot.add_cog(Transactional(bot))

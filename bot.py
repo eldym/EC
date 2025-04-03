@@ -110,7 +110,7 @@ class ec_bot(commands.Bot):
                             await mining_cog.block_broke_embed(i[0], reciept, curr_block)
                         except Exception as e: print(e)
 
-                        if (random.randint(1,10)==1): # 1/10 chance autominer breaks, this is to nerf automining lol
+                        if (random.randint(1,15)==1): # 1/15 chance autominer breaks, this is to nerf automining lol
                             try:
                                 # Get autominer data
                                 automminer_data = self.database.get_auto_miner(i[0])

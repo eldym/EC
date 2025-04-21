@@ -285,8 +285,17 @@ class Database():
         for data in cursor: pass
         return data
     
+    def get_transaction(self, id):
+        # Gets the transaction data from a specific transaction id
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM transactions WHERE id = {id}")
+
+        data = None
+        for data in cursor: pass
+        return data
+    
     def get_all_transactions(self, uuid):
-        # Gets the transaction data 
+        # Gets all the transaction data (sending or recieving) from a specific user
         cursor = self.db.cursor()
         cursor.execute(f"SELECT * FROM transactions WHERE send_uuid = {uuid} OR recv_uuid = {uuid}")
 

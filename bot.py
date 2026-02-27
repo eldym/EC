@@ -17,25 +17,23 @@ INITIAL_EXTENSIONS = [
     'cogs.transactional',
     'cogs.leaderboards'
 ]
-    
+
+def get_token():
+    with open('credentials.json') as f:
+        return json.load(f)["token"]
+
 def get_config():
     with open('config.json') as f:
         return json.load(f)
     
-def get_token():
-    with open('credentials.json') as f:
-        return json.load(f)
-
-config = get_config()
-token = get_token()
-
 class ec_bot(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=config["prefixes"], description="Very good description",intents=discord.Intents.all())
-        self.owner_id = config["admin_id"]
-        self.token = token["token"]
-        self.initial_extensions = INITIAL_EXTENSIONS
+        # bot variables
+        self.config = get_config()
+        self.token = get_token()
         self.database = None
+        self.initial_extensions = INITIAL_EXTENSIONS
+        super().__init__(command_prefix=self.config["prefixes"], description="Very good description",intents=discord.Intents.all())
     
     async def on_ready(self):
         # Starts up the bot!
@@ -56,9 +54,6 @@ class ec_bot(commands.Bot):
         # Status background task
         self.bg_task = self.loop.create_task(self.status_loop())
 
-        # Automining background task
-        self.bg_task = self.loop.create_task(self.automine_loop())
-
     async def status_loop(self):
         # Creates status loop
         await self.wait_until_ready() # Waits til the bot gets built, cus you can't change presence on self
@@ -66,18 +61,18 @@ class ec_bot(commands.Bot):
         # Loops through the statuses
         while not self.is_closed():
             await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"made w/ ❤️ by eld_!"))
-            await asyncio.sleep(20) # Time interval between changes in status (set to 20 seconds)
+            await asyncio.sleep(20) # changes the status every 20 seconds
             await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Difficulty: {self.database.get_current_block()[2]}"))
             await asyncio.sleep(20)
-            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Block #{self.database.get_current_block()[0]}"))
+            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Block Height: {self.database.get_current_block()[0]}"))
             await asyncio.sleep(20)
-            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Emission: {self.emission_abbreviated()}"))
+            await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Supply: {self.emission_abbreviated()}"))
             await asyncio.sleep(20)
 
     def emission_abbreviated(self):
         # Tries to get supply and append, if fails just states 0 in supply
         try: supply = int(self.database.get_supply()[0])
-        except: return f"0 {config["currency"]}"
+        except: return f"0 {self.config["currency"]}"
 
         # Calculates if supply is large enough to shorten
         # Used modified solution originally by Adam Rosenfield (from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings)
@@ -90,49 +85,24 @@ class ec_bot(commands.Bot):
         if magnitude >= 1: supStr = f"{supply:.2f}"
         else: supStr = supply # Otherwise, just proceed with original number
 
-        return f"{supStr}{['', 'K', 'M', 'B', 'T'][magnitude]} {config["currency"]}" # Creates the abbreviated form of number
-    
-    async def automine_loop(self):
-        # Creates automine loop
-        await self.wait_until_ready()
-
-        while not self.is_closed():
-            for i in self.database.get_auto_miners():
-                if (random.randint(1,3)<=2): # 2/3 chance that automine successfully adds a hash
-                    curr_block = self.database.get_current_block()
-                    guess, reciept = self.database.mine(i[0])
-
-                    if reciept is None: pass
-                    else: 
-                        print('User ID:', i[0], 'broke the block. Guess was:', guess)
-                        try: 
-                            mining_cog = self.get_cog('Mining')
-                            await mining_cog.block_broke_embed(i[0], reciept, curr_block)
-                        except Exception as e: print(e)
-
-                        if (random.randint(1,15)==1): # 1/15 chance autominer breaks, this is to nerf automining lol
-                            try:
-                                # Get autominer data
-                                automminer_data = self.database.get_auto_miner(i[0])
-                                self.get_cog('Mining')
-
-                                embed = mining_cog.autominer_died_embed(automminer_data) # Creates embed for dead autominer
-                                user = await self.fetch_user(i[0]) # Fetches the user
-                                if (random.randint(1,100)<100): await user.send(f"Uh oh!  Your autominer has broken!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Notifies that their autominer crashed
-                                else: await user.send(f"Wha-!?  How did it get in here!?  A fox was nibbling at your autominer's cables!  Please run `{config["prefixes"][0]}am` to turn it back on.") # Rare 1/100 find!
-                                await user.send(embed=embed) # Send final automine stats
-                                
-                                self.database.update_user_automining_status(i[0]) # Updates their automining status
-                                print(f"User ID: {i[0]}'s autominer broke down!")
-                            except Exception as e: 
-                                print(e)
-
-            await asyncio.sleep(10)
+        return f"{supStr}{['', 'K', 'M', 'B', 'T'][magnitude]} {self.config["currency"]}" # Creates the abbreviated form of number
 
     def error_embed(self, content):
         # Generates the error message embed with a given descriptor
-        return discord.Embed(title=f"Error!", description=f"{content}", color=0xFF0000, timestamp=datetime.now())
+        return discord.Embed(title=f"Error!", description=f"{content}", color=0xD10000, timestamp=datetime.now())
     
+    def error_noacc(self):
+        # Generates generic error message embed for users who don't have an account
+        return discord.Embed(title=f"Error!", description=f"You don't have an account! Please run `{self.config["prefixes"][0]}create` to get started.", color=0xD10000, timestamp=datetime.now())
+    
+    def error_nodata(self):
+        # Generates generic error message embed for a situation where no data is found
+        return discord.Embed(title=f"Error!", description=f"**Nobody here but us chickens!**\nThere is no data to display!", color=0xD10000, timestamp=datetime.now())
+
+    def success_embed(self, content):
+        # Generates generic success message embed with a given descriptor
+        return discord.Embed(title=f"Success!", description=f"{content}", color=0x008000, timestamp=datetime.now())
+
     def run(self):
         super().run(self.token, reconnect=True)
 

@@ -1,5 +1,8 @@
 __pycache__
+.vscode
 old
 testing.py
 chart.png
 credentials.json
+config_test.json
+credentials_test.json

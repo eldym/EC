@@ -9,9 +9,8 @@
 
 # What's EC?
 
-EC is an open-source Discord digital currency bot.
-Designed for ease of use and quick deployment in mind, it works as a form of learning to get MySQL to run alongside the Python programming language.
+EC is an open-source Discord digital currency bot designed for ease of use and quick deployment.
 
-This project aims to demonstrate the oppurtunities MySQL holds through the use of a fun bot that can be deployed and/or modified by anyone at home.
+This project aims to demonstrate the oppurtunities MySQL holds through the use of a bot that can be easily deployed and/or modified by anyone at home.
 
 An in depth guide for setup is coming soon!

@@ -1,18 +1,10 @@
 import discord
-import asyncio
-import json
-
 from discord.ext import commands
 from datetime import datetime
 
-def get_config():
-    with open('config.json') as f:
-        return json.load(f)
-
-config = get_config()
-
 EMB_COLOUR = 0x000000
-DISPLAY_CURRENCY = config["display_currency"]
+BAL_OPTIONS = ['b', 'bal', 'balance']
+BLOCK_OPTIONS = ['block', 'blocks']
 
 class Leaderboards(commands.Cog):
     """
@@ -21,49 +13,41 @@ class Leaderboards(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.display_currency = bot.config["display_currency"]
     
     @commands.command(aliases=['lb', 'leader', 'board'])
     @commands.cooldown(1, 2, commands.BucketType.channel)
-    async def leaderboard(self, ctx, lbType, *page):
-        # Gives the user leaderboards
+    async def leaderboard(self, ctx, lb_type, *page):
+        """Gives the leaderboards given a leaderboard type and optionally a page number."""
 
         # Checks if it should default to page 1 (if there is no given page number or invalid input)
-        if len(page) <= 0 or len(page) >= 2:
+        if len(page) == 0 or len(page) > 1:
             page = 1
-        elif type(page) is tuple:
+        if type(page) is tuple:
             page = int(page[0])
 
-        # Checks what the user inputs
-        bOptions = ['b', 'bal', 'balance']
-        sOptions = ['s', 'solo']
-        pOptions = ['p', 'pool']
-
         data = None
-
         # Checks the typing of leaderboard requested
-        if lbType.lower() in bOptions:
-            lbType = 'Balance' # To send off to embed builder to specify
-            data = self.bot.database.get_balances_descending() # Gets database data
-        elif lbType.lower() in sOptions:
-            lbType = 'Solo Block'
-            data = self.bot.database.get_solo_block_descending()
-        elif lbType.lower() in pOptions:
-            lbType = 'Pool Block'
-            data = self.bot.database.get_pool_block_descending()
+        if lb_type.lower() in BAL_OPTIONS:
+            lb_type = 'Balance' # To send off to embed builder to specify
+            data = self.bot.database.get_balances_descending(offset=page-1) # Gets database data
+        elif lb_type.lower() in BLOCK_OPTIONS:
+            lb_type = 'Blocks'
+            data = self.bot.database.get_blocks_descending(offset=page-1)
         
         # Replies built leaderboard embed
         if len(data) > 0 or data is None:
-            embed = await self.lb_embed(data, lbType, page)
+            embed = await self.lb_embed(data, lb_type, page) # generate embed
             if embed is not None:
                 await ctx.reply(embed=embed)
             else:
-                await ctx.reply(embed = self.bot.error_embed("**Nobody here but us chickens!**\nThere is no data to display!"))
+                await ctx.reply(embed = self.bot.error_nodata())
         else:
-            await ctx.reply(embed = self.bot.error_embed("**Nobody here but us chickens!**\nThere is no data to display!"))
+            await ctx.reply(embed = self.bot.error_nodata())
     
-    async def lb_embed(self, data, lbType, page):
+    async def lb_embed(self, data, lb_type, page):
         # Generates leaderboard embeds
-
+        embed = None
         # Calculates index ranges from given page number
         if type(page) is int and page >= 1: 
             startIndex = (page*10) - 10
@@ -73,36 +57,23 @@ class Leaderboards(commands.Cog):
             endIndex = 10
         
         # Gets the users between the index points
-        lbData = data[startIndex:endIndex]
+        lbData = data
 
         # If there is results from the given page number
         if len(lbData) >= 1:
-            # Determines whether it should be displaying the currency or blocks for lb building
-            if lbType == "Balance": 
-                whichType = DISPLAY_CURRENCY
-                whichNumber = 1 # to display currency
-            else: 
-                whichType = "block(s)"
-                if lbType == "Pool Block":
-                    whichNumber = 2 # to display pool
-                else:
-                    whichNumber = 3 # to display solo
-
             # Building embed
-            embed = discord.Embed(title=f"{lbType} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
+            embed = discord.Embed(title=f"{lb_type} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
             startIndex += 1
             for i in lbData:
-                username = i[5]
-                embed.add_field(name=f"{startIndex}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[whichNumber]} {whichType}", inline=False)
+                username = i[2]
+                embed.add_field(name=f"{startIndex}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[1]} {self.display_currency if lb_type == "Balance" else "block(s)"}", inline=False)
                 startIndex += 1
             
             # Shows page number
             embed.set_footer(text=f"Page {page}")
 
-            # Returns final leaderboard embed
-            return embed
-        else:
-            return None # If there are no results, send None
+        # Returns leaderboard embed
+        return embed
 
 async def setup(bot):
     await bot.add_cog(Leaderboards(bot))

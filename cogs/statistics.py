@@ -1,19 +1,9 @@
 import discord
-import asyncio
-import json
 import matplotlib.pyplot as plt
-
 from discord.ext import commands
 from datetime import datetime
 
-def get_config():
-    with open('config.json') as f:
-        return json.load(f)
-
-config = get_config()
-
 EMB_COLOUR = 0x000000
-DISPLAY_CURRENCY = config["display_currency"]
 
 class Statistics(commands.Cog):
     """
@@ -22,11 +12,12 @@ class Statistics(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.display_currency = bot.config["display_currency"]
 
     @commands.command(aliases=['dp', 'diff'])
     @commands.cooldown(1, 10, commands.BucketType.channel)
     async def plot(self, ctx, *data_points):
-        # Generates a plot of past block difficulties - default is 30
+        """Generates a plot of past block difficulties - default is 30."""
         defaulted = False
 
         # Checks if there is a given data points range
@@ -96,11 +87,21 @@ class Statistics(commands.Cog):
     
     @commands.command()
     async def ping(self, ctx):
+        """Bot ping."""
         await ctx.reply(f"**Latency:** `{self.bot.latency*1000:.2f} ms`")
     
     @commands.command(aliases=['s'])
     async def supply(self, ctx):
-        await ctx.reply(f"There is currently {self.bot.database.get_supply()[0]} {DISPLAY_CURRENCY} in supply.")
+        """Current supply of currency."""
+        await ctx.reply(f"There is currently {self.bot.database.get_supply()[0]} {self.display_currency} in supply.")
+
+    @commands.command(aliases=['gh'])
+    async def github(self, ctx):
+        """EC GitHub repo! Check it out :)"""
+        embed=discord.Embed(title="GitHub Repo", description="Check out updates on EC's Github repository page:\nhttps://github.com/eldym/EC", color=EMB_COLOUR)
+        embed.set_footer(text="Consider giving a follow or ⭐!")
+        embed.set_thumbnail(url=f"https://cdn.discordapp.com/attachments/1328761316847910912/1476724922729631745/25231.png")
+        await ctx.reply(embed=embed)
     
 async def setup(bot):
     await bot.add_cog(Statistics(bot))

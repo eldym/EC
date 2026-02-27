@@ -24,7 +24,7 @@ class Database():
     def create_user(self, uuid, username):
         # Creates a new user if the user doesn't have an account
         if self.get_user(uuid) is None:
-            self.db.cursor().execute("INSERT INTO users (uuid, balance, pool_b, solo_b, pooling, username) VALUES (%s,%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, 0, username))
+            self.db.cursor().execute("INSERT INTO users (uuid, balance, blocks, pooling, username) VALUES (%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, username))
             self.db.commit()
             return self.get_user(uuid)
         else: return False
@@ -32,11 +32,6 @@ class Database():
     def create_pool_effort_log(self, uuid):
         # Creates a log for a user's pool contribution
         self.db.cursor().execute("INSERT INTO pool_b_data (block_id, miner, shares) VALUES (%s,%s,%s)", (int(self.get_current_block()[0]), uuid, 1))
-        self.db.commit()
-    
-    def create_automining_log(self, uuid):
-        # Creates a log for a user's automining session
-        self.db.cursor().execute("INSERT INTO automining_data (miner_id, session_blocks_broken, session_total_shares, session_payout, start_unix) VALUES (%s,%s,%s,%s,%s)", (uuid, 0, 0, 0, int(time.time())))
         self.db.commit()
 
     def create_block(self):
@@ -46,7 +41,7 @@ class Database():
         reward = self.calculate_reward()
         diff = self.calculate_difficulty()
 
-        if diff == 0: # Should not ever equal 0
+        if diff == 0: # Should not ever equal 0, default to the start difficulty
             diff = START_DIFF
 
         cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD, int(time.time())))
@@ -55,11 +50,12 @@ class Database():
     def create_transaction_log(self, send_uuid, recv_uuid, amount):
         # Creates a new transaction log
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (send_uuid, recv_uuid, amount, 0, int(time.time())))
-        # Finds the transaction and returns it
-        cursor.execute("SELECT * FROM transactions WHERE id = (SELECT MAX(id) FROM transactions)")
-        for i in cursor: pass
+        timestamp = int(time.time())
+        cursor.execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (send_uuid, recv_uuid, amount, 0, timestamp))
         self.db.commit()
+
+        cursor.execute("SELECT * FROM transactions WHERE id = (SELECT MAX(id) FROM transactions)") # gets the newly generated transaction
+        for i in cursor: pass
         return i
     
     # UPDATERS
@@ -71,22 +67,11 @@ class Database():
 
     def update_user_pooling_status(self, uuid):
         # Updates a user's mining method setting
-        pooling = self.get_user(uuid)[4] # Gets user data to see if user is pooling
+        pooling = self.get_user(uuid)[3] # Gets user data to see if user is pooling
         if pooling <= 0: self.db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
         elif pooling >= 1: self.db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
         self.db.commit()
         return "Pool" if pooling == 0 else "Solo"
-    
-    def update_user_automining_status(self, uuid):
-        # Updates a user's automated mining setting
-        user = self.get_auto_miner(uuid)
-        if user is not None:
-            self.db.cursor().execute(f"DELETE FROM automining_data WHERE miner_id = {uuid}")
-            self.db.commit()
-            return False
-        else:
-            self.create_automining_log(uuid)
-            return True
     
     def update_username(self, uuid, new_username):
         # Updates specific user's username
@@ -95,10 +80,9 @@ class Database():
 
     # INCREMENTERS
 
-    def increment_user_block_count(self, uuid, type):
+    def increment_user_block_count(self, uuid):
         # Updates specific user's balance
-        if type == "pool": self.db.cursor().execute(f"UPDATE users SET pool_b = pool_b + 1 WHERE uuid = {uuid}")
-        else: self.db.cursor().execute(f"UPDATE users SET solo_b = solo_b + 1 WHERE uuid = {uuid}")
+        self.db.cursor().execute(f"UPDATE users SET blocks = blocks + 1 WHERE uuid = {uuid}")
         self.db.commit()
 
     def increment_pool_effort(self, uuid):
@@ -106,27 +90,35 @@ class Database():
         self.db.cursor().execute(f"UPDATE pool_b_data SET shares = shares + 1 WHERE miner = {uuid}")
         self.db.commit()
 
-    def increment_user_automine_session_block(self, uuid):
-        # Updates specific user's Automine Session Block Count
-        self.db.cursor().execute(f"UPDATE automining_data SET session_blocks_broken = session_blocks_broken + 1 WHERE miner_id = {uuid}")
-        self.db.commit()
-    
-    def increment_user_automine_session_hashes(self, uuid):
-        # Updates specific user's Automine Session Hash Count
-        self.db.cursor().execute(f"UPDATE automining_data SET session_total_shares = session_total_shares + 1 WHERE miner_id = {uuid}")
-        self.db.commit()
-
-    def increment_user_automine_session_payout(self, uuid, amt):
-        # Updates specific user's total Automine Session Payout Amount
-        self.db.cursor().execute(f"UPDATE automining_data SET session_payout = session_payout + {amt} WHERE miner_id = {uuid}")
-        self.db.commit()
-
     # GETTERS
 
     def get_user(self, uuid):
         # Get specific user's data
+        # user[0] = UUID
+        # user[1] = Balance
+        # user[2] = Blocks
+        # user[3] = Pooling Status (0 off or 1 on)
+        # user[4] = Cached Username
         cursor = self.db.cursor()
         cursor.execute(f"SELECT * FROM users WHERE uuid = {uuid}")
+        
+        user = None
+        for user in cursor: pass
+        return user
+    
+    def get_user_bal(self, uuid):
+        # Gets ONLY a user's balance
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT balance FROM users WHERE uuid = {uuid}")
+        
+        user = None
+        for user in cursor: pass
+        return user
+    
+    def get_username(self, uuid):
+        # Gets ONLY a user's username
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT username FROM users WHERE uuid = {uuid}")
         
         user = None
         for user in cursor: pass
@@ -190,15 +182,6 @@ class Database():
         for block in cursor: pass
         return block
     
-    def getTransaction(self, id):
-        # Get specific transaction data from transaction ID
-        cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM transactions WHERE id = {id}")
-
-        transaction = None
-        for transaction in cursor: pass
-        return transaction
-    
     def get_pool_miner(self, uuid):
         # Gets a specific pool miner
         cursor = self.db.cursor()
@@ -227,49 +210,22 @@ class Database():
         for data in cursor: pass
         return data
     
-    def get_auto_miner(self, uuid):
-        # Gets an automining user
+    def get_balances_descending(self, offset=0):
+        # Gets top 10 user balances' data in descending order of balance given an offset
+        offset = offset*10
         cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM automining_data WHERE miner_id = {uuid}")
-
-        autominer = None
-        for autominer in cursor: pass
-        return autominer
-    
-    def get_auto_miners(self):
-        # Gets all automining users
-        cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM automining_data")
-
-        miners = []
-        for miner in cursor:
-            miners.append(miner)
-        return miners
-    
-    def get_balances_descending(self):
-        # Get user data in descending order of balance
-        cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM users ORDER BY balance DESC")
+        cursor.execute(f"SELECT uuid, balance, username FROM users ORDER BY balance DESC LIMIT 10 OFFSET {offset}")
 
         users = []
         for user in cursor: 
             users.append(user)
         return users
     
-    def get_pool_block_descending(self):
-        # Get user data in descending order of broken pool blocks
+    def get_blocks_descending(self, offset=0):
+        # Gets user data in descending order of broken blocks
+        offset = offset*10
         cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM users ORDER BY pool_b DESC")
-
-        users = []
-        for user in cursor: 
-            users.append(user)
-        return users
-    
-    def get_solo_block_descending(self):
-        # Get user data in descending order of broken solo blocks
-        cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM users ORDER BY solo_b DESC")
+        cursor.execute(f"SELECT uuid, blocks, username FROM users ORDER BY blocks DESC LIMIT 10 OFFSET {offset}")
 
         users = []
         for user in cursor: 
@@ -319,7 +275,8 @@ class Database():
                 while i < len(recv_uuid):
                     reciept.append(self.__transaction_aux(recv_uuid[i], send_uuid, sender, amount[i]))
                     i += 1
-            else: return "Error"
+            else:
+                return "Error"
             return reciept
         else:
             return "Your balance is too low."
@@ -337,15 +294,13 @@ class Database():
         
     def mine(self, uuid):
         block = self.get_current_block()
-        pooling = self.get_user(uuid)[4]
-        auto_status = self.get_auto_miner(uuid)
-        guess = random.randint(0,block[2])
+        pooling = self.get_user(uuid)[3]
+        guess = random.randint(0, block[2])
         reciept = None
 
         if pooling == 1:
             if self.get_pool_miner(uuid) is not None: self.increment_pool_effort(str(uuid))
             else: self.create_pool_effort_log(uuid)
-        
         if guess < block[3]: # broken block procedure
             if pooling == 1: # pool
                 reciept = []
@@ -353,28 +308,15 @@ class Database():
                 summed = self.get_pool_share_sum()
 
                 for miner in miners:
-                    self.increment_user_block_count(miner[1], 'pool')
+                    self.increment_user_block_count(miner[1])
                     result = self.transaction("Coinbase", miner[1], block[1]*(miner[2]/summed[0]))
-
-                    if self.get_auto_miner(miner[1]) is not None:
-                        self.increment_user_automine_session_payout(miner[1], block[1]*(miner[2]/summed[0]))
-
                     reciept.append(result)
 
             elif pooling == 0: # solo
-                self.increment_user_block_count(str(uuid), 'solo')
+                self.increment_user_block_count(str(uuid))
                 reciept = self.transaction("Coinbase", str(uuid), block[1])
 
-                if self.get_auto_miner(uuid) is not None:
-                    self.increment_user_automine_session_payout(uuid, block[1])
-
-            if auto_status is not None:
-                self.increment_user_automine_session_block(uuid)
-
             self.create_block()
-
-        if auto_status is not None:
-            self.increment_user_automine_session_hashes(uuid)
 
         return guess, reciept
     

@@ -13,8 +13,8 @@
     "db_pass": "root",
     "db_name": "ecdata",
 
-    "start_diff": 1,
-    "start_diff_threshold": 10,
+    "start_diff": 16,
+    "start_diff_threshold": 8,
     "start_reward": 500,
     "look_back": 100,
     "target_time": 300

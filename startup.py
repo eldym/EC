@@ -61,6 +61,8 @@ class database_startup():
             print(f"{SUCCESS}Created block Table.{ENDC}")
             cursor.execute("CREATE TABLE IF NOT EXISTS pool_b_data (block_id INT UNSIGNED NOT NULL, miner VARCHAR(20) NOT NULL, shares INT UNSIGNED NOT NULL, FOREIGN KEY(miner) REFERENCES users(uuid), FOREIGN KEY(block_id) REFERENCES block(block_number))")
             print(f"{SUCCESS}Created pool_b_data Table.{ENDC}")
+            cursor.execute("CREATE TABLE IF NOT EXISTS automining_data (miner_id VARCHAR(20) NOT NULL PRIMARY KEY, session_blocks_broken INT UNSIGNED NOT NULL, session_total_shares INT UNSIGNED NOT NULL, session_payout DECIMAL(18,6) UNSIGNED NOT NULL, start_unix INT(11) UNSIGNED NOT NULL, FOREIGN KEY(miner_id) REFERENCES users(uuid))")
+            print(f"{SUCCESS}Created automining_data Table.{ENDC}")
             print()
 
 # One-time startup. As soon as this is completed, execute bot.py.

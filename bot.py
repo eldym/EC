@@ -54,6 +54,9 @@ class ec_bot(commands.Bot):
         # Status background task
         self.bg_task = self.loop.create_task(self.status_loop())
 
+        # Automining background task
+        self.bg_task = self.loop.create_task(self.automine_loop())
+
     async def status_loop(self):
         # Creates status loop
         await self.wait_until_ready() # Waits til the bot gets built, cus you can't change presence on self
@@ -68,6 +71,42 @@ class ec_bot(commands.Bot):
             await asyncio.sleep(20)
             await self.change_presence(activity=discord.Activity(type = discord.ActivityType.watching, name = f"Supply: {self.emission_abbreviated()}"))
             await asyncio.sleep(20)
+
+    async def automine_loop(self):
+        await self.wait_until_ready()
+
+        while not self.is_closed():
+            ids = self.database.get_auto_miners_id()
+            if len(ids) == 0:
+                print("Detected no autominers! Sleeping for 10 seconds...")
+                await asyncio.sleep(10)
+                continue
+            random.shuffle(ids) # ensures one miner isn't always first, as this game is a first come first serve game
+            print(f"Automine Looped\nShuffled IDs:\n{ids}")
+
+            for id in ids:
+                reciept = None
+                if random.random() <= 2/3: # 2/3 chance to submit share
+                    try: _, reciept = self.database.mine(id)
+                    except Exception as e:print(e)
+                    if random.random() <= .2/3: # 4.44% chance (2/3 * 1/15 = 2/45) to have autominer die
+                        user = await self.fetch_user(id)
+                        await user.send(f"Uh oh! Your autominer has broken! Run `{self.config["prefixes"][0]}am` to turn it back on.")
+                        mining_cog = self.get_cog('Mining')
+                        embed = mining_cog.autominer_died_embed(id)
+                        await user.send(embed=embed)
+                        self.database.update_user_automining_status(id)
+
+                if reciept is None: # no results, just continue
+                    continue
+                else: # block was broken
+                    print(reciept)
+                    user_data = self.database.get_user(id)
+                    mining_cog = self.get_cog('Mining')
+                    curr_block = self.database.get_current_block_relevant_md()
+                    await mining_cog.block_broke_embed(user_data, reciept, curr_block)
+
+            await asyncio.sleep(3)
 
     def emission_abbreviated(self):
         # Tries to get supply and append, if fails just states 0 in supply

@@ -113,7 +113,7 @@ class Database():
                 uuids = uuid
             else:
                 uuids += f",{uuid}"
-            self.db.cursor().execute(f"UPDATE airdrops SET uuids = {uuids} WHERE start_time = {start_time}")
+            self.db.cursor().execute(f"UPDATE airdrops SET uuids = \"{uuids}\" WHERE start_time = {start_time}")
             self.db.commit()
             return True
         else:

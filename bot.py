@@ -51,6 +51,11 @@ class ec_bot(commands.Bot):
         except Exception as e:
             print("ERROR: Database is not initialized!\nException:", e)
 
+        # Clears out airdrops table, refunds unfinished airdrops
+        if not self.database.get_if_aidrops_empty():
+            print("Incomplete airdrops detected. Refunding incomplete airdrops...")
+            self.database.airdrop_cancel()
+
         # Status background task
         self.bg_task = self.loop.create_task(self.status_loop())
 

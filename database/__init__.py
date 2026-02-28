@@ -63,6 +63,17 @@ class Database():
         for i in cursor: pass
         return i
     
+    def create_airdrop_log(self, airdropper_uuid, amount, start_time):
+        # Creates a new airdrop log
+        try:
+            cursor = self.db.cursor()
+            cursor.execute("INSERT INTO airdrops (start_time, airdropper_id, amount, uuids) VALUES (%s,%s,%s,%s)", (start_time, airdropper_uuid, amount, ""))
+            self.db.commit()
+        except Exception as e: 
+            print(e)
+            return False
+        else: return True
+    
     # UPDATERS
     
     def update_user_bal(self, uuid, new_bal):
@@ -92,6 +103,32 @@ class Database():
     def update_username(self, uuid, new_username):
         # Updates specific user's username
         self.db.cursor().execute("UPDATE users SET username = %s WHERE uuid = %s", (new_username, uuid))
+        self.db.commit()
+
+    def add_airdrop_participant(self, start_time, uuid):
+        # Updates airdrop participants list
+        uuids = self.get_airdrop_participants(start_time)
+        if not str(uuid) in uuids:
+            if uuids == "":
+                uuids = uuid
+            else:
+                uuids += f",{uuid}"
+            self.db.cursor().execute(f"UPDATE airdrops SET uuids = {uuids} WHERE start_time = {start_time}")
+            self.db.commit()
+            return True
+        else:
+            return False
+
+    def delete_airdrop(self, start_time):
+        # Deletes a specific airdrop
+        cursor = self.db.cursor()
+        cursor.execute(f"DELETE FROM airdrops WHERE start_time = {start_time}")
+        self.db.commit()
+
+    def delete_airdrops_data(self):
+        # Deletes all airdrop data
+        cursor = self.db.cursor()
+        cursor.execute("TRUNCATE TABLE airdrops")
         self.db.commit()
 
     # INCREMENTERS
@@ -144,7 +181,8 @@ class Database():
         
         user = None
         for user in cursor: pass
-        return user
+        if user is not None: return user[0]
+        else: return None
     
     def get_username(self, uuid):
         # Gets ONLY a user's username
@@ -337,6 +375,42 @@ class Database():
         for data in cursor: pass
         return data
     
+    def get_aidrop(self, start_time):
+        # Gets all the airdrop data given a unique start time
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT * FROM airdrops WHERE start_time = {start_time}")
+
+        airdrop = None
+        for airdrop in cursor: pass
+        return airdrop
+    
+    def get_all_aidrops(self):
+        # Gets all the airdrop data
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM airdrops")
+
+        airdrops = []
+        for airdrop in cursor: 
+            airdrops.append(airdrop)
+        return airdrops
+    
+    def get_if_aidrops_empty(self):
+        # Returns True if empty, False if not
+        cursor = self.db.cursor()
+        cursor.execute("SELECT EXISTS(SELECT 1 FROM airdrops)")
+
+        airdrop = None
+        for airdrop in cursor: pass
+        return airdrop[0] == 0
+    
+    def get_airdrop_participants(self, start_time):
+        cursor = self.db.cursor()
+        cursor.execute(f"SELECT uuids FROM airdrops WHERE start_time = {start_time}")
+
+        airdrop = None
+        for airdrop in cursor: pass
+        return airdrop[0]
+    
     # CORE FUNCTIONS
     
     def transaction(self, send_uuid, recv_uuid, amount):
@@ -411,6 +485,47 @@ class Database():
 
         return guess, reciept
     
+    def airdrop_start(self, uuid, amount, start_time):
+        # Protects currency by putting a hold on currency for things like airdrops
+        new_bal = float(self.get_user_bal(uuid)) - amount
+        self.update_user_bal(uuid, new_bal)
+        self.create_airdrop_log(uuid, amount, start_time)
+    
+    def airdrop_payout(self, start_time):
+        # Payouts from airdrop
+        airdrop = self.get_aidrop(start_time)
+        print(start_time)
+        new_bal = self.get_user_bal(airdrop[1]) + airdrop[2]
+        self.update_user_bal(airdrop[1], new_bal) # return balance to user
+
+        if len(airdrop[3]) == 0: # no participants
+            self.delete_airdrop(start_time)
+            return False, None
+        
+        uuids = airdrop[3].split(",")
+        print("uuids here:", uuids)
+        x = airdrop[2] / len(uuids)
+        n_decimals = 6
+        amount = ((x * 10**n_decimals) // 1) / (10**n_decimals)
+        
+        # do payout to all participants
+        for uuid in uuids:
+            self.transaction(airdrop[1], uuid, amount)
+
+        self.delete_airdrop(start_time) # delete the airdrop log
+
+        return True, uuids
+
+    def airdrop_cancel(self):
+        # Redeposits all currency on hold from airdrop table
+        airdrops = self.get_all_aidrops()
+
+        for i in airdrops: # i[0]: start_time, i[1]: uuid, i[2]: amount
+            new_bal = self.get_user_bal(i[1]) + i[2]
+            self.update_user_bal(i[1], new_bal)
+        
+        self.delete_airdrops_data() # delete all data
+        
     # CALCULATIONS
 
     def calculate_difficulty(self):

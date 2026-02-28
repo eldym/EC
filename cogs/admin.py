@@ -55,6 +55,13 @@ class Admin(commands.Cog):
                 else: print("Username", user[4], "was unchanged")
 
             await ctx.reply(f'Updated all usernames where applicable.')
+    
+    @commands.command()
+    async def cancel_aidrops(self, ctx):
+        """ADMIN ONLY: Force cancels all airdrops."""
+        if ctx.author.id == self.bot.config["admin_id"]:
+            self.bot.database.airdrop_cancel()
+            await ctx.reply(f'Canceled current airdrops.')
 
     # DANGER ZONE
 

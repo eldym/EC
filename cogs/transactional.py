@@ -1,10 +1,29 @@
 import discord
 import asyncio
+import time
 from discord.ext import commands
 from datetime import datetime
 
 COOLDOWN = 2
 EMB_COLOUR = 0x000000
+
+class AirdropButton(discord.ui.View):
+    def __init__(self, bot, start_time, airdropper_id, timeout = 180):
+        super().__init__(timeout=timeout)
+        self.bot = bot
+        self.start_time = start_time
+        self.airdropper_id = airdropper_id
+
+    @discord.ui.button(label="Click me!", style=discord.ButtonStyle.green)
+    async def button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id == self.airdropper_id:
+            await interaction.response.send_message("You cannot claim your own airdrop!", ephemeral=True)
+        elif self.bot.database.get_user_bal(interaction.user.id) is None:
+            await interaction.response.send_message(embed=self.bot.error_noacc(), ephemeral=True)
+        elif self.bot.database.add_airdrop_participant(self.start_time, interaction.user.id):
+            await interaction.response.send_message("You joined the airdrop!", ephemeral=True)
+        else:
+            await interaction.response.send_message("You've already joined the airdrop!", ephemeral=True)
 
 class Transactional(commands.Cog):
     """
@@ -21,7 +40,7 @@ class Transactional(commands.Cog):
     async def send(self, ctx, reciever, amount):
         """Send a reciever an amount of currency."""
         # CHECKS
-        sender_data = float(self.bot.database.get_user_bal(ctx.author.id)[0])
+        sender_data = float(self.bot.database.get_user_bal(ctx.author.id))
         # check if user has account
         if sender_data is None: 
             await ctx.reply(embed=self.bot.noacc())
@@ -44,27 +63,33 @@ class Transactional(commands.Cog):
             await ctx.reply(embed=self.bot.error_embed("This user doesn't have an account!"))
             return
         
-        amount = float(amount)
-        # handle 0 / negative item amount
-        if amount <= 0:
-            await ctx.reply(embed=self.bot.error_embed(f"The amount you want to send must be **greater than or equal** to `0.000001` {self.display_currency}!"))
+        # confirm amount is a valid float with 6 decimal places
+        try: 
+            amount = round(float(amount), 6)
+        except:
+            await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
             return
         
+        # handle 0 / negative item amount
+        if amount < 0.000001:
+            await ctx.reply(embed=self.bot.error_embed(f"The amount you want to send must be **greater than or equal** to `0.000001` {self.display_currency}!"))
+            return
+
         # user doesn't have enough money
         if sender_data < amount:
             await ctx.reply(embed=self.bot.error_embed(f"You don't have enough {self.display_currency} to make this transaction!"))
             return
 
         # timed transaction confirmation
-        await ctx.reply("Please say \'yes\' or \'y\' within 30 seconds to complete this transaction.")
+        to_edit = await ctx.reply("Please say \'yes\' or \'y\' within 15 seconds to complete this transaction.")
 
         # checking function
         def check(m):
             return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
         
         # try/except block to check if confirmation was given
-        try: msg = await self.bot.wait_for('message', check=check, timeout=30.0) # set to 30 seconds
-        except asyncio.TimeoutError: await ctx.reply("The transaction has timed out and was canceled.") # if timer runs out
+        try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
+        except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made
             reciept = self.bot.database.transaction(ctx.author.id, reciever, amount)
             if type(reciept) is tuple:
@@ -116,6 +141,70 @@ class Transactional(commands.Cog):
         # If transaction doesn't exist, throw error embed
         else: await ctx.reply(embed=self.bot.error_nodata())
 
+    @commands.command(aliases=['ad', 'drop'])
+    @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
+    async def airdrop(self, ctx, amt, time_period=60):
+        """Creates a "drop" where any users interacting with the message within a time period recieve an amount of currency. This amount is split amongst participants."""
+        user_bal = self.bot.database.get_user_bal(ctx.author.id)
+        if user_bal is None:
+            await ctx.reply(embed=self.bot.error_noacc())
+            return
+        else:
+            user_bal = float(user_bal)
+
+        try: amt = round(float(amt), 6)
+        except: 
+            if amt == "all":
+                amt == user_bal
+            else:
+                await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
+                return
+
+        if amt <= 0:
+            await ctx.reply(embed=self.bot.error_embed(f"The amount you want to send must be **greater than or equal** to `0.000001` {self.display_currency}!"))
+            return
+        
+        if amt > user_bal:
+            await ctx.reply(embed=self.bot.error_embed(f"You don't have enough {self.display_currency} to make run this airdrop!"))
+        
+        try: time_period = int(time_period)
+        except: time_period = 60
+        if time_period > 86400: # limits time periods to only 1 day max
+            time_period = 86400
+
+        # timed confirmation
+        to_edit = await ctx.reply("Please say \'yes\' or \'y\' within 15 seconds to confirm.")
+        def check(m):
+            return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
+        try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
+        except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
+        else: # If confirmation is made
+            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt} {self.display_currency}...")
+
+            # temp hold user's money
+            start_time = int(time.time())
+            self.bot.database.airdrop_start(ctx.author.id, amt, start_time)
+            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt} {self.display_currency}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
+            to_edit_embed = await ctx.send(embed=embed, view=AirdropButton(self.bot, start_time, ctx.author.id))
+            await asyncio.sleep(2)
+            await to_edit.delete()
+            await asyncio.sleep(time_period)
+            results, uuids = self.bot.database.airdrop_payout(start_time)
+            if results:
+                ppl = "" if len(uuids) != 1 else f"<@{uuids[0]}>"
+                i = 0
+                if len(uuids) != 1:
+                    while i < len(uuids):
+                        if i+2 < len(uuids): ppl += f"<@{uuids[i]}>, "
+                        elif i+1 != len(uuids): ppl += f"<@{uuids[i]}> "
+                        else: ppl += f"and <@{uuids[i]}>"
+                        i += 1
+
+                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
+            else:
+                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop! (**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+            await to_edit_embed.edit(embed=embed)
+        
     """@commands.command(aliases=['ts','trans'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def transactions(self, ctx, *inputs):

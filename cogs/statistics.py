@@ -23,6 +23,8 @@ class Statistics(commands.Cog):
         # Checks if there is a given data points range
         if len(data_points) <= 0 or len(data_points) >= 2: # If no valid number is given
             data_points = 31
+            if data_points > self.bot.database.get_current_block()[0]:
+                data_points = self.bot.database.get_current_block()[0]
             defaulted = True
         else:
             try: data_points = int(data_points[0])
@@ -36,7 +38,7 @@ class Statistics(commands.Cog):
         begin_index, difficulties_list = self.__make_plot(data_points) # TODO: use difficulty list data for more statistics in this embed
         if defaulted: data_points -= 1
 
-        embed = discord.Embed(title=f"Past {data_points} Blocks' Difficulty", description=f"A plot of past {data_points} blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
+        embed = discord.Embed(title=f"Past {data_points+1} Blocks' Difficulty", description=f"A plot of past {data_points+1} blocks' difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
         file = discord.File("chart.png", filename="image.png")
         embed.set_image(url="attachment://image.png")
 

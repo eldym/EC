@@ -82,7 +82,7 @@ class Transactional(commands.Cog):
             return
 
         # timed transaction confirmation
-        to_edit = await ctx.reply("Please say \'yes\' or \'y\' within 15 seconds to complete this transaction.")
+        to_edit = await ctx.reply(f"Are you sure you want to send **{reciever_data[4]} {amount} {self.display_currency}**?\nPlease say \'yes\' or \'y\' within 15 seconds to complete this transaction.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
 
         # checking function
         def check(m):
@@ -92,6 +92,7 @@ class Transactional(commands.Cog):
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
         except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made
+            await to_edit.delete()
             reciept = self.bot.database.transaction(ctx.author.id, reciever_id, amount)
             if type(reciept) is tuple:
                 # Embed building
@@ -178,13 +179,13 @@ class Transactional(commands.Cog):
             time_period = 86400
 
         # timed confirmation
-        to_edit = await ctx.reply("Please say \'yes\' or \'y\' within 15 seconds to confirm.")
+        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt} {self.display_currency}** for **{time_period} second(s)**?\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
         def check(m):
             return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
         except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made
-            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt} {self.display_currency}...")
+            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt} {self.display_currency} to complete in {time_period} second(s)...")
 
             # temp hold user's money
             start_time = int(time.time())

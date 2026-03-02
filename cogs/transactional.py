@@ -82,11 +82,11 @@ class Transactional(commands.Cog):
             return
 
         # timed transaction confirmation
-        to_edit = await ctx.reply(f"Are you sure you want to send **{reciever_data[4]} {amount} {self.display_currency}**?\nPlease say \'yes\' or \'y\' within 15 seconds to complete this transaction.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
+        to_edit = await ctx.reply(f"Are you sure you want to send **{reciever_data[4]} {amount:.6f} {self.display_currency}**?\nPlease say \'yes\' or \'y\' within 15 seconds to complete this transaction.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
 
         # checking function
         def check(m):
-            return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
+            return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel and m.author.id == ctx.author.id
         
         # try/except block to check if confirmation was given
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
@@ -179,9 +179,9 @@ class Transactional(commands.Cog):
             time_period = 86400
 
         # timed confirmation
-        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt} {self.display_currency}** for **{time_period} second(s)**?\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
+        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt:.6f} {self.display_currency}** for **{time_period} second(s)**?\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
         def check(m):
-            return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel
+            return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel and m.author.id == ctx.author.id
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
         except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made

@@ -8,13 +8,14 @@ COOLDOWN = 2
 EMB_COLOUR = 0x000000
 
 class AirdropButton(discord.ui.View):
+    # Interaction button for the airdrop
     def __init__(self, bot, start_time, airdropper_id, timeout = 180):
         super().__init__(timeout=timeout)
         self.bot = bot
         self.start_time = start_time
         self.airdropper_id = airdropper_id
 
-    @discord.ui.button(label="Click me!", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Join!", style=discord.ButtonStyle.green, emoji="✈️")
     async def button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id == self.airdropper_id:
             await interaction.response.send_message("You cannot claim your own airdrop!", ephemeral=True)
@@ -192,7 +193,8 @@ class Transactional(commands.Cog):
             to_edit_embed = await ctx.send(embed=embed, view=AirdropButton(self.bot, start_time, ctx.author.id))
             await asyncio.sleep(2)
             await to_edit.delete()
-            await asyncio.sleep(time_period)
+            await asyncio.sleep(time_period-2) # compensate for the 2 second wait for message to delete
+            await to_edit_embed.delete()
             results, uuids = self.bot.database.airdrop_payout(start_time)
             if results:
                 ppl = "" if len(uuids) != 1 else f"<@{uuids[0]}>"
@@ -206,8 +208,8 @@ class Transactional(commands.Cog):
 
                 embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
             else:
-                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop! (**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
-            await to_edit_embed.edit(embed=embed)
+                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+            await ctx.send(embed=embed)
         
     """@commands.command(aliases=['ts','trans'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)

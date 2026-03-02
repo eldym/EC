@@ -109,15 +109,13 @@ class Database():
         # Updates airdrop participants list
         uuids = self.get_airdrop_participants(start_time)
         if not str(uuid) in uuids:
-            if uuids == "":
-                uuids = uuid
-            else:
-                uuids += f",{uuid}"
+            if uuids == "": uuids = uuid # first claimant
+            else: uuids += f",{uuid}" # adding each claimant after first one, "," gets used as a delimiter here
             self.db.cursor().execute(f"UPDATE airdrops SET uuids = \"{uuids}\" WHERE start_time = {start_time}")
             self.db.commit()
-            return True
+            return True # added user to the flight log
         else:
-            return False
+            return False # user was already participating!
 
     def delete_airdrop(self, start_time):
         # Deletes a specific airdrop
@@ -494,7 +492,6 @@ class Database():
     def airdrop_payout(self, start_time):
         # Payouts from airdrop
         airdrop = self.get_aidrop(start_time)
-        print(start_time)
         new_bal = self.get_user_bal(airdrop[1]) + airdrop[2]
         self.update_user_bal(airdrop[1], new_bal) # return balance to user
 
@@ -503,7 +500,6 @@ class Database():
             return False, None
         
         uuids = airdrop[3].split(",")
-        print("uuids here:", uuids)
         x = airdrop[2] / len(uuids)
         n_decimals = 6
         amount = ((x * 10**n_decimals) // 1) / (10**n_decimals)

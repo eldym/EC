@@ -59,7 +59,7 @@ class Transactional(commands.Cog):
             return
         
         # check if reciever has account
-        reciever_data = self.bot.database.get_user(reciever)
+        reciever_data = self.bot.database.get_user(reciever_id)
         if reciever_data is None:
             await ctx.reply(embed=self.bot.error_embed("This user doesn't have an account!"))
             return
@@ -92,7 +92,7 @@ class Transactional(commands.Cog):
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
         except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made
-            reciept = self.bot.database.transaction(ctx.author.id, reciever, amount)
+            reciept = self.bot.database.transaction(ctx.author.id, reciever_id, amount)
             if type(reciept) is tuple:
                 # Embed building
                 embed=discord.Embed(title="Transaction Success!", description=f"**{amount:.6f} {self.display_currency}** was sent to **{reciever_data[4]}**.", color=EMB_COLOUR, timestamp=datetime.now())
@@ -103,8 +103,8 @@ class Transactional(commands.Cog):
                 await ctx.reply(embed=embed)
 
                 # Notify reciever
-                reciever_user = await ctx.bot.fetch_user(reciever)
-                await reciever_user.send(f"Hey <@{reciever}>! You recieved {amount:.6f} {self.display_currency} from **{ctx.author.name}**!\nTransaction ID: `{reciept[0]}`\n-# You can view this transaction using `!transaction {reciept[0]}`")
+                reciever_user = await ctx.bot.fetch_user(reciever_id)
+                await reciever_user.send(f"Hey <@{reciever_id}>! You recieved {amount:.6f} {self.display_currency} from **{ctx.author.name}**!\nTransaction ID: `{reciept[0]}`\n-# You can view this transaction using `!transaction {reciept[0]}`")
             else:
                 # If there is an error, prints out error to user
                 await ctx.reply(f"`Error!`\n{reciept}")

@@ -159,7 +159,7 @@ class Mining(commands.Cog):
             else: await ctx.reply(embed=self.bot.error_embed(f"You aren't pool mining! Run `{self.default_prefix}switch` to switch to pool mining."))
         else: await ctx.reply(embed=self.bot.error_noacc())
 
-    @commands.command()
+    @commands.command(aliases=['sw'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
     async def switch(self, ctx):
         """Switches user pooling status."""

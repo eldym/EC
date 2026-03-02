@@ -24,8 +24,15 @@ class Leaderboards(commands.Cog):
         if len(page) == 0 or len(page) > 1:
             page = 1
         if type(page) is tuple:
-            page = int(page[0])
-
+            try: page = int(page[0])
+            except: 
+                await ctx.reply(embed = self.bot.error_embed("Invalid input for leaderboard page number!"))
+                return
+            else: 
+                if page <= 0:
+                    await ctx.reply(embed = self.bot.error_nodata())
+                    return
+            
         data = None
         # Checks the typing of leaderboard requested
         if lb_type.lower() in BAL_OPTIONS:
@@ -51,10 +58,8 @@ class Leaderboards(commands.Cog):
         # Calculates index ranges from given page number
         if type(page) is int and page >= 1: 
             startIndex = (page*10) - 10
-            endIndex = (page*10)
         else: 
             startIndex = 0
-            endIndex = 10
         
         # Gets the users between the index points
         lbData = data

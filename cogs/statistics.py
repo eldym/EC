@@ -24,25 +24,23 @@ class Statistics(commands.Cog):
         if len(data_points) <= 0 or len(data_points) >= 2: # If no valid number is given
             data_points = 31
             defaulted = True
-        elif type(data_points) is tuple: 
-            data_points = int(data_points[0])
+        else:
+            try: data_points = int(data_points[0])
+            except: 
+                await ctx.reply(embed=self.bot.error_embed("Invalid input for data points!"))
+                return
             if data_points > self.bot.database.get_current_block()[0]: # Checks if range of data being requested would exceed how many blocks currently exist
-                embed = self.bot.error_embed("Cannot access block difficulty data that far!")
-                data_points = None
-        else: 
-            embed = self.bot.error_embed("Cannot access block difficulty data!")
-            data_points = None
+                await ctx.reply(embed=self.bot.error_embed("Cannot access block difficulty data that far!"))
+                return
 
-        if data_points is not None:
-            difficulties_list = self.__make_plot(data_points) # TODO: use difficulty list data for more statistics in this embed
-            if defaulted: data_points -= 1
+        begin_index, difficulties_list = self.__make_plot(data_points) # TODO: use difficulty list data for more statistics in this embed
+        if defaulted: data_points -= 1
 
-            embed = discord.Embed(title=f"Past {data_points} Blocks' Difficulty", description=f"A plot of past {data_points} blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
-            file = discord.File("chart.png", filename="image.png")
-            embed.set_image(url="attachment://image.png")
+        embed = discord.Embed(title=f"Past {data_points} Blocks' Difficulty", description=f"A plot of past {data_points} blocks' (*not including current block*) difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
+        file = discord.File("chart.png", filename="image.png")
+        embed.set_image(url="attachment://image.png")
 
-            await ctx.reply(file=file, embed=embed)
-        else: await ctx.reply(embed=embed)
+        await ctx.reply(file=file, embed=embed)
     
     def __difficulties_plot(self, difficulties, begin_index):
         # Creates x axis tickers
@@ -83,7 +81,7 @@ class Statistics(commands.Cog):
         # Sends data points to make chart image file
         self.__difficulties_plot(difficulties, begin_index)
 
-        return difficulties
+        return begin_index, difficulties
     
     @commands.command()
     async def ping(self, ctx):

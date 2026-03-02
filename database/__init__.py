@@ -17,7 +17,7 @@ TARGET_TIME = config["target_time"]
 
 class Database():
     def __init__(self):
-        self.db = mysql.connector.connect(host=config["db_host"],user=config["db_user"],passwd=config["db_pass"],database=config["db_name"])
+        self.db = mysql.connector.connect(host=config["db_host"],user=config["db_user"],passwd=config["db_pass"],database=config["db_name"],autocommit=True)
     
     # CREATORS
 
@@ -25,19 +25,16 @@ class Database():
         # Creates a new user if the user doesn't have an account
         if self.get_user(uuid) is None:
             self.db.cursor().execute("INSERT INTO users (uuid, balance, blocks, pooling, username) VALUES (%s,%s,%s,%s,%s)", (str(uuid), 0, 0, 0, username))
-            self.db.commit()
             return self.get_user(uuid)
         else: return False
 
     def create_pool_effort_log(self, uuid):
         # Creates a log for a user's pool contribution
         self.db.cursor().execute("INSERT INTO pool_b_data (block_id, miner, shares) VALUES (%s,%s,%s)", (int(self.get_current_block()[0]), uuid, 1))
-        self.db.commit()
     
     def create_automining_log(self, uuid):
         # Creates a log for a user's automining session
         self.db.cursor().execute("INSERT INTO automining_data (miner_id, session_blocks_broken, session_total_shares, session_payout, start_unix) VALUES (%s,%s,%s,%s,%s)", (uuid, 0, 0, 0, int(time.time())))
-        self.db.commit()
 
     def create_block(self):
         # Creates a new block
@@ -50,14 +47,12 @@ class Database():
             diff = START_DIFF
 
         cursor.execute("INSERT INTO block (reward, difficulty, diff_threshold, unix_time) VALUES (%s,%s,%s,%s)", (reward, diff, START_DIFF_THRESHOLD, int(time.time())))
-        self.db.commit()
     
     def create_transaction_log(self, send_uuid, recv_uuid, amount):
         # Creates a new transaction log
         cursor = self.db.cursor()
         timestamp = int(time.time())
         cursor.execute("INSERT INTO transactions (send_uuid, recv_uuid, amount, fee, unix_time) VALUES (%s,%s,%s,%s,%s)", (send_uuid, recv_uuid, amount, 0, timestamp))
-        self.db.commit()
 
         cursor.execute("SELECT * FROM transactions WHERE id = (SELECT MAX(id) FROM transactions)") # gets the newly generated transaction
         for i in cursor: pass
@@ -68,7 +63,6 @@ class Database():
         try:
             cursor = self.db.cursor()
             cursor.execute("INSERT INTO airdrops (start_time, airdropper_id, amount, uuids) VALUES (%s,%s,%s,%s)", (start_time, airdropper_uuid, amount, ""))
-            self.db.commit()
         except Exception as e: 
             print(e)
             return False
@@ -79,14 +73,12 @@ class Database():
     def update_user_bal(self, uuid, new_bal):
         # Updates specific user's balance
         self.db.cursor().execute("UPDATE users SET balance = %s WHERE uuid = %s", (new_bal, uuid))
-        self.db.commit()
 
     def update_user_pooling_status(self, uuid):
         # Updates a user's mining method setting
         pooling = self.get_user(uuid)[3] # Gets user data to see if user is pooling
         if pooling <= 0: self.db.cursor().execute(f"UPDATE users SET pooling = pooling + 1 WHERE uuid = {uuid}")
         elif pooling >= 1: self.db.cursor().execute(f"UPDATE users SET pooling = pooling - 1 WHERE uuid = {uuid}")
-        self.db.commit()
         return "Pool" if pooling == 0 else "Solo"
     
     def update_user_automining_status(self, uuid):
@@ -94,7 +86,6 @@ class Database():
         user = self.get_auto_miner(uuid)
         if user is not None:
             self.db.cursor().execute(f"DELETE FROM automining_data WHERE miner_id = {uuid}")
-            self.db.commit()
             return False
         else:
             self.create_automining_log(uuid)
@@ -103,7 +94,6 @@ class Database():
     def update_username(self, uuid, new_username):
         # Updates specific user's username
         self.db.cursor().execute("UPDATE users SET username = %s WHERE uuid = %s", (new_username, uuid))
-        self.db.commit()
 
     def add_airdrop_participant(self, start_time, uuid):
         # Updates airdrop participants list
@@ -112,7 +102,6 @@ class Database():
             if uuids == "": uuids = uuid # first claimant
             else: uuids += f",{uuid}" # adding each claimant after first one, "," gets used as a delimiter here
             self.db.cursor().execute(f"UPDATE airdrops SET uuids = \"{uuids}\" WHERE start_time = {start_time}")
-            self.db.commit()
             return True # added user to the flight log
         else:
             return False # user was already participating!
@@ -121,40 +110,33 @@ class Database():
         # Deletes a specific airdrop
         cursor = self.db.cursor()
         cursor.execute(f"DELETE FROM airdrops WHERE start_time = {start_time}")
-        self.db.commit()
 
     def delete_airdrops_data(self):
         # Deletes all airdrop data
         cursor = self.db.cursor()
         cursor.execute("TRUNCATE TABLE airdrops")
-        self.db.commit()
 
     # INCREMENTERS
 
     def increment_user_block_count(self, uuid):
         # Updates specific user's balance
         self.db.cursor().execute(f"UPDATE users SET blocks = blocks + 1 WHERE uuid = {uuid}")
-        self.db.commit()
-
+        
     def increment_pool_effort(self, uuid):
         # Updates specific user's effort in a pool
         self.db.cursor().execute(f"UPDATE pool_b_data SET shares = shares + 1 WHERE miner = {uuid}")
-        self.db.commit()
 
     def increment_user_automine_session_block(self, uuid):
         # Updates specific user's Automine Session Block Count
         self.db.cursor().execute(f"UPDATE automining_data SET session_blocks_broken = session_blocks_broken + 1 WHERE miner_id = {uuid}")
-        self.db.commit()
     
     def increment_user_automine_session_hashes(self, uuid):
         # Updates specific user's Automine Session Hash Count
         self.db.cursor().execute(f"UPDATE automining_data SET session_total_shares = session_total_shares + 1 WHERE miner_id = {uuid}")
-        self.db.commit()
 
     def increment_user_automine_session_payout(self, uuid, amt):
         # Updates specific user's total Automine Session Payout Amount
         self.db.cursor().execute(f"UPDATE automining_data SET session_payout = session_payout + {amt} WHERE miner_id = {uuid}")
-        self.db.commit()
 
     # GETTERS
 
@@ -548,7 +530,7 @@ class Database():
                 except: pass
             
             # Calculates the difficulty average
-            diff_average = sum(look_back_difficulties)/LOOK_BACK
+            diff_average = sum(look_back_difficulties)/n_blocks
 
             # Gets the total of Unix seconds between current block break and 3 blocks before
             obsMineTime = int(time.time()) - look_back_blocks[0][4]
@@ -559,14 +541,19 @@ class Database():
             print(f'Expected time (s):',TARGET_TIME*n_blocks)
             print(f'Time deviation from expected: ×{(TARGET_TIME*n_blocks)/obsMineTime:.4f}')
             print(f'Time deviation percentage: {(TARGET_TIME*n_blocks)/obsMineTime*100:.4f}%')
-            print(f'Averaged difficulty: {diff_average}')
-            print(f'Adjusted difficulty: {int(diff_average*((TARGET_TIME*n_blocks)/obsMineTime))}')
+            print(f'Averaged difficulty: {diff_average:.2f}')
+            adj_diff = int(diff_average*((TARGET_TIME*n_blocks)/obsMineTime))
+            print(f'Adjusted difficulty: {adj_diff}')
             print()
 
+            # If difficulty is below the starting difficulty, set difficulty as it
+            if adj_diff < START_DIFF:
+                print(f'Difficulty too low. Defaulting to start difficulty: {START_DIFF}\n')
+                return START_DIFF
             # Smooths out difficulty increase to prevent extreme difficulty change shock
-            if ((TARGET_TIME*LOOK_BACK)/obsMineTime) > 2: print('Difficulty multiplied by 2\n'); return curr[2]*(2)
-            elif ((TARGET_TIME*LOOK_BACK)/obsMineTime) < 1/2: print('Difficulty divided by 2\n'); return curr[2]*(1/2)
-            else: print('Difficulty on normal math\n'); return int(diff_average*((TARGET_TIME*LOOK_BACK)/obsMineTime))
+            if ((TARGET_TIME*n_blocks)/obsMineTime) > 2: print('Difficulty multiplied by 2\n'); return curr[2]*(2)
+            elif ((TARGET_TIME*n_blocks)/obsMineTime) < 1/2: print('Difficulty divided by 2\n'); return curr[2]*(1/2)
+            else: print('Difficulty on normal math\n'); return adj_diff
         else:
             return START_DIFF
         

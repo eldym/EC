@@ -57,22 +57,22 @@ class Leaderboards(commands.Cog):
         embed = None
         # Calculates index ranges from given page number
         if type(page) is int and page >= 1: 
-            startIndex = (page*10) - 10
+            start_index = (page*10) - 10
         else: 
-            startIndex = 0
+            start_index = 0
         
         # Gets the users between the index points
-        lbData = data
+        lb_data = data
 
         # If there is results from the given page number
-        if len(lbData) >= 1:
+        if len(lb_data) >= 1:
             # Building embed
             embed = discord.Embed(title=f"{lb_type} Leaderboard", color=EMB_COLOUR, timestamp=datetime.now())
-            startIndex += 1
-            for i in lbData:
+            start_index += 1
+            for i in lb_data:
                 username = i[2]
-                embed.add_field(name=f"{startIndex}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[1]} {self.display_currency if lb_type == "Balance" else "block(s)"}", inline=False)
-                startIndex += 1
+                embed.add_field(name=f"{start_index}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[1]} {self.display_currency if lb_type == "Balance" else "block(s)"}", inline=False)
+                start_index += 1
             
             # Shows page number
             embed.set_footer(text=f"Page {page}")

@@ -36,25 +36,22 @@ class User(commands.Cog):
         try: member = await ctx.bot.fetch_user(member)
         except: member = ctx.author; defaulted = True
         finally:
-            userData = self.bot.database.get_user(member.id)
+            # Get user data: user_data[0]: user id, user_data[1]: balance, user_data[2]: blocks, user_data[3]: pooling status
+            user_data = self.bot.database.get_user(member.id)
 
-            if userData is not None:
+            if user_data is not None:
                 # Check if username updated
-                if member.name != userData[4]:
+                if member.name != user_data[4]:
                     self.bot.database.update_username(member.id, member.name)
-                    print(f"Updated username in database: {userData[4]} -> {member.name}")
-
-                # Defaults to author's if member mentionned couldn't be found
-                if defaulted or member.id == ctx.author.id: embTitle = "Your Balance"
-                else: embTitle = f"{member.name}\'s Balance"
+                    print(f"Updated username in database: {user_data[4]} -> {member.name}")
 
                 # Embed building
-                embed=discord.Embed(title=embTitle, color=EMB_COLOUR, timestamp=datetime.now())
+                embed=discord.Embed(title="Your Balance" if defaulted or member.id == ctx.author.id else f"{member.name}\'s Balance", color=EMB_COLOUR, timestamp=datetime.now())
                 try: embed.set_thumbnail(url=member.avatar.url)
                 except: embed.set_thumbnail(url=f'https://cdn.discordapp.com/embed/avatars/{random.randint(0,5)}.png')    
-                embed.add_field(name="💵 Currency", value=f"{userData[1]} {self.display_currency}", inline=False)
-                embed.add_field(name="☑️ Blocks", value=f"{userData[2]:,} block{'s' if userData[2] != 1 else ""} broken", inline=False)
-                embed.add_field(name="🚤 Pooling", value=f"{"TRUE" if userData[3] == 1 else "FALSE"}", inline=False)
+                embed.add_field(name="💵 Currency", value=f"{user_data[1]} {self.display_currency}", inline=False)
+                embed.add_field(name="☑️ Blocks", value=f"{user_data[2]:,} block{'s' if user_data[2] != 1 else ""} broken", inline=False)
+                embed.add_field(name="🚤 Pooling", value=f"{"TRUE" if user_data[3] == 1 else "FALSE"}", inline=False)
                 embed.set_footer(text="Bot made with ❤️ by eld_!")
                 await ctx.reply(embed=embed)
             else:

@@ -33,7 +33,7 @@ class ec_bot(commands.Bot):
         self.token = get_token()
         self.database = None
         self.initial_extensions = INITIAL_EXTENSIONS
-        super().__init__(command_prefix=self.config["prefixes"], description="Very good description",intents=discord.Intents.all())
+        super().__init__(command_prefix=self.config["prefixes"], description="A open-source digital currency bot made by eld_ 🦊",intents=discord.Intents.all())
     
     async def on_ready(self):
         # Starts up the bot!
@@ -94,7 +94,7 @@ class ec_bot(commands.Bot):
                 if random.random() <= 2/3: # 2/3 chance to submit share
                     try: _, reciept = self.database.mine(id)
                     except Exception as e:print(e)
-                    if random.random() <= 1/15: # 4.44% chance (2/3 * 1/15 = 2/45) to have autominer die
+                    if random.random() <= 1/60: # 1/60 to have autominer die
                         user = await self.fetch_user(id)
                         await user.send(f"Uh oh! Your autominer has broken! Run `{self.config["prefixes"][0]}am` to turn it back on.")
                         mining_cog = self.get_cog('Mining')
@@ -110,8 +110,8 @@ class ec_bot(commands.Bot):
                     mining_cog = self.get_cog('Mining')
                     curr_block = self.database.get_current_block_relevant_md()
                     await mining_cog.block_broke_embed(user_data, reciept, curr_block)
-
-            await asyncio.sleep(3)
+            # Performs automing cycle every 4 seconds
+            await asyncio.sleep(4)
 
     def emission_abbreviated(self):
         # Tries to get supply and append, if fails just states 0 in supply

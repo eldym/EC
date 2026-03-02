@@ -112,8 +112,12 @@ class Transactional(commands.Cog):
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def transaction(self, ctx, id):
         """Displays transaction information given an txn ID."""
-        transaction = self.bot.database.get_transaction(id)
-
+        transaction = None
+        try: transaction = self.bot.database.get_transaction(int(id))
+        except: 
+            await ctx.reply(embed = self.bot.error_embed("Invalid input for transaction ID!"))
+            return
+        
         # Checks if transaction exists
         if transaction is not None:
             # Embed building
@@ -207,9 +211,8 @@ class Transactional(commands.Cog):
         
     """@commands.command(aliases=['ts','trans'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
-    async def transactions(self, ctx, *inputs):
-        if inputs is not None and len(inputs.split()) < 3:
-            inputs.split()"""
+    async def transactions(self, ctx, *page):
+        """
         
 async def setup(bot):
     await bot.add_cog(Transactional(bot))

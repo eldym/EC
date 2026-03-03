@@ -94,7 +94,7 @@ class ec_bot(commands.Bot):
                 if random.random() <= 2/3: # 2/3 chance to submit share
                     try: _, reciept = self.database.mine(id)
                     except Exception as e:print(e)
-                    if random.random() <= 1/60: # 1/60 to have autominer die
+                    if random.random() <= 1/300: # 1/300 to have autominer die
                         user = await self.fetch_user(id)
                         await user.send(f"Uh oh! Your autominer has broken! Run `{self.config["prefixes"][0]}am` to turn it back on.")
                         mining_cog = self.get_cog('Mining')

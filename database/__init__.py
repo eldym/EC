@@ -423,7 +423,7 @@ class Database():
             self.update_user_bal(recv_uuid, float(recver[1])+amount)
             reciept = self.create_transaction_log(send_uuid, recv_uuid, amount)
             return reciept
-        
+    
     def mine(self, uuid):
         block = self.get_current_block()
         pooling = self.get_user(uuid)[3]
@@ -485,6 +485,10 @@ class Database():
         x = airdrop[2] / len(uuids)
         n_decimals = 6
         amount = ((x * 10**n_decimals) // 1) / (10**n_decimals)
+        
+        # amount is too small to be split to participants
+        if amount == 0:
+            return False, amount
         
         # do payout to all participants
         for uuid in uuids:

@@ -179,7 +179,7 @@ class Transactional(commands.Cog):
             time_period = 86400
 
         # timed confirmation
-        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt:.6f} {self.display_currency}** for **{time_period} second(s)**?\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
+        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt:.6f} {self.display_currency}** for **{time_period} second(s)**?\n**NOTICE:** if the amount paid out is not greater than or equal to 0.000001 {self.display_currency} per participant, the airdrop may be terminated on completion!\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
         def check(m):
             return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel and m.author.id == ctx.author.id
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
@@ -190,7 +190,7 @@ class Transactional(commands.Cog):
             # temp hold user's money
             start_time = int(time.time())
             self.bot.database.airdrop_start(ctx.author.id, amt, start_time)
-            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt} {self.display_currency}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
+            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt} {self.display_currency:.6f}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
             to_edit_embed = await ctx.send(embed=embed, view=AirdropButton(self.bot, start_time, ctx.author.id))
             await asyncio.sleep(2)
             await to_edit.delete()
@@ -209,7 +209,10 @@ class Transactional(commands.Cog):
 
                 embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
             else:
-                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+                if type(uuids) == float:
+                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"The airdrop amount was too low to distribute!\n(**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+                else:
+                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
             await ctx.send(embed=embed)
         
     """@commands.command(aliases=['ts','trans'])

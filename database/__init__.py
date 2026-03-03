@@ -488,6 +488,7 @@ class Database():
         
         # amount is too small to be split to participants
         if amount == 0:
+            self.delete_airdrop(start_time)
             return False, amount
         
         # do payout to all participants

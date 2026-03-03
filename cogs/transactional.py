@@ -185,12 +185,12 @@ class Transactional(commands.Cog):
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
         except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made
-            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt} {self.display_currency} to complete in {time_period} second(s)...")
+            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt:.6f} {self.display_currency} to complete in {time_period} second(s)...")
 
             # temp hold user's money
             start_time = int(time.time())
             self.bot.database.airdrop_start(ctx.author.id, amt, start_time)
-            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt} {self.display_currency:.6f}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
+            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt:.6f} {self.display_currency}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
             to_edit_embed = await ctx.send(embed=embed, view=AirdropButton(self.bot, start_time, ctx.author.id))
             await asyncio.sleep(2)
             await to_edit.delete()
@@ -207,12 +207,12 @@ class Transactional(commands.Cog):
                         else: ppl += f"and <@{uuids[i]}>"
                         i += 1
 
-                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
+                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt:.6f} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
             else:
-                if type(uuids) == float:
-                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"The airdrop amount was too low to distribute!\n(**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+                if uuids is not None:
+                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"The airdrop amount was too low to distribute!\n(**{amt:.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
                 else:
-                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt:.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
             await ctx.send(embed=embed)
         
     """@commands.command(aliases=['ts','trans'])

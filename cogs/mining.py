@@ -144,7 +144,7 @@ class Mining(commands.Cog):
         user_data = self.bot.database.get_user(ctx.author.id)
 
         if user_data is not None:
-            if user_data[4] == 1:
+            if user_data[3] == 1:
                 curr_block = self.bot.database.get_current_block_relevant_md()
                 share_sum = self.bot.database.get_pool_share_sum()[0]
                 user_pool_shares = self.bot.database.get_pool_miner(ctx.author.id)[2]

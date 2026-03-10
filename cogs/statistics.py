@@ -7,7 +7,12 @@ EMB_COLOUR = 0x000000
 
 class Statistics(commands.Cog):
     """
-    Statistics commands
+    ### Statistics Commands
+    Commands for viewing currency statistical data.
+
+    - **plot** *{p_blocks}: generates a visualization of block difficulties given n optional past blocks range.
+    - **ping**: shows bot ping.
+    - **supply**: shows current currency supply.
     """
 
     def __init__(self, bot):

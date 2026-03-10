@@ -8,7 +8,11 @@ COOLDOWN = 2
 
 class User(commands.Cog):
     """
-    User commands
+    ### User Commands
+    Commands pertaining to the creation and viewing of one's account.
+
+    - **create**: allows a user to create a wallet account.
+    - **balance** *{member}: shows an account balance.
     """
 
     def __init__(self, bot):

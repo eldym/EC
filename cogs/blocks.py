@@ -6,7 +6,10 @@ EMB_COLOUR = 0x000000
 
 class Blocks(commands.Cog):
     """
-    Block commands
+    ### Block commands
+    Commands and functions pertaining to blocks and information about them.
+
+    - **block / bi / blockinfo** *{block_number}: fetches data on a block, block number field is optional (if empty, defaults to *current* block).
     """
 
     def __init__(self, bot):

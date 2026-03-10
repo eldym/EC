@@ -28,7 +28,12 @@ class AirdropButton(discord.ui.View):
 
 class Transactional(commands.Cog):
     """
-    Transaction commands
+    ### Transaction Commands
+    Commands for users to send and recieve currency.
+
+    - **send / p / pay / give** {reciever} {amount}: sends some reciever an amount of currency.
+    - **transaction / t / tran / log / reciept** {id}: shows the transaction info given a transaction ID.
+    - **airdrop / ad** {amt} *{time_period}: allows multiple users to claim a share of an amount of currency within a time limit.
     """
 
     def __init__(self, bot):

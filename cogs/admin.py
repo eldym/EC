@@ -6,13 +6,10 @@ class Admin(commands.Cog):
     ### Admin Commands
     Commands for adminstrators of the bot.
 
-    **add_to_bal / ab** {user_id} {amount}: directly add currency to a user's balance
-
-    **create_user / cu** {user_id}: force create an account for a user
-
-    **update_usernames / uu**: update cached username table
-
-    **kill**: kills the bot instance
+    - **add_to_bal / ab** {user_id} {amount}: directly add currency to a user's balance.
+    - **create_user / cu** {user_id}: force create an account for a user.
+    - **update_usernames / uu**: update cached username table.
+    - **kill**: kills the bot instance.
     """
 
     def __init__(self, bot):

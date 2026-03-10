@@ -7,7 +7,13 @@ EMB_COLOUR = 0x000000
 
 class Mining(commands.Cog):
     """
-    Mining commands
+    ### Mining Commands
+    Commands for minting/mining currency.
+
+    - **mine / m**: runs a random guess between 0 - current block difficulty.
+    - **automine / am / auto**: enables an autominer to automatically make guesses for the user.
+    - **pool_data / pd / pool**: shows the current pooling data.
+    - **switch / sw**: switches the user's pooling status.
     """
     def __init__(self, bot):
         self.bot = bot

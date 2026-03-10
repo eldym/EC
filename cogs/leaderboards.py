@@ -8,7 +8,13 @@ BLOCK_OPTIONS = ['bl', 'block', 'blocks']
 
 class Leaderboards(commands.Cog):
     """
-    Mining commands
+    ### Leaderboards Commands
+    Commands for viewing top users in the bot.
+
+    - **leaderboard / lb** *{args}: provides a leaderboard given optional parameters. 
+                                - If no parameters are provided, deafults to first page of balance leaderboard.
+                                - If one parameter is provided, it must be either an integer or string. (ie. !lb 2 or !lb blocks)
+                                - If two are provided, they must be a pair of an integer and string. (ie. !lb bal 3) The position of the parameter types does not matter.
     """
 
     def __init__(self, bot):

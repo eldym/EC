@@ -94,14 +94,6 @@ class Statistics(commands.Cog):
     async def supply(self, ctx):
         """Current supply of currency."""
         await ctx.reply(f"There is currently {self.bot.database.get_supply()[0]} {self.display_currency} in supply.")
-
-    @commands.command(aliases=['gh'])
-    async def github(self, ctx):
-        """EC GitHub repo! Check it out :)"""
-        embed=discord.Embed(title="GitHub Repo", description="Check out updates on EC's Github repository page:\nhttps://github.com/eldym/EC", color=EMB_COLOUR)
-        embed.set_footer(text="Consider giving a follow or ⭐!")
-        embed.set_thumbnail(url=f"https://cdn.discordapp.com/attachments/1328761316847910912/1476724922729631745/25231.png")
-        await ctx.reply(embed=embed)
     
 async def setup(bot):
     await bot.add_cog(Statistics(bot))

@@ -10,12 +10,13 @@ from cogs.mining import Mining
 
 INITIAL_EXTENSIONS = [
     'cogs.admin',
-    'cogs.user',
-    'cogs.mining',
     'cogs.blocks',
+    'cogs.leaderboards',
+    'cogs.mining',
+    'cogs.socials',
     'cogs.statistics',
     'cogs.transactional',
-    'cogs.leaderboards'
+    'cogs.user'
 ]
 
 def get_token():

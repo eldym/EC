@@ -16,18 +16,18 @@ class Blocks(commands.Cog):
 
     @commands.command(aliases=['bi', 'blockinfo'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
-    async def block(self, ctx, block_number):
-        """Gives block data given a block number."""
-        try: block = self.bot.database.get_block(int(block_number))
-        except: await ctx.reply(embed=self.bot.error_embed("Invalid input for block number!"))
-        else: await ctx.reply(embed=self.block_embed(block))
+    async def block(self, ctx, *block_number):
+        """Gives block data given a (optional) block number."""
 
-    @commands.command(aliases=['cb', 'current', 'currentblock'])
-    @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
-    async def current_block(self, ctx):
-        """Gives the current block data."""
-        curr = self.bot.database.get_current_block()
-        await ctx.reply(embed=self.block_embed(curr))
+        if len(block_number) == 0 or len(block_number) > 1:
+            block = self.bot.database.get_current_block()
+        else:
+            try: block = self.bot.database.get_block(int(block_number[0]))
+            except: 
+                await ctx.reply(embed=self.bot.error_embed("Invalid input for block number!"))
+                return
+        
+        await ctx.reply(embed=self.block_embed(block))
 
     def block_embed(self, block_data):
         # Generates block information embed if block exists

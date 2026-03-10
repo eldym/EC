@@ -14,31 +14,29 @@ class Statistics(commands.Cog):
         self.bot = bot
         self.display_currency = bot.config["display_currency"]
 
-    @commands.command(aliases=['dp', 'diff'])
+    @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.channel)
-    async def plot(self, ctx, *data_points):
-        """Generates a plot of past block difficulties - default is 30."""
-        defaulted = False
+    async def plot(self, ctx, *p_blocks):
+        """Generates a plot of past block difficulties - if no arguments are provided, default is 30.\np_blocks: # of past blocks to see the difficulties of."""
 
-        # Checks if there is a given data points range
-        if len(data_points) <= 0 or len(data_points) >= 2: # If no valid number is given
-            data_points = 31
-            if data_points > self.bot.database.get_current_block()[0]:
-                data_points = self.bot.database.get_current_block()[0]
-            defaulted = True
+        # Checks if there is a valid given range of past blocks to check
+        if len(p_blocks) != 1:
+            p_blocks = 30
+            curr_block_height = self.bot.database.get_current_block()[0]
+            if p_blocks > curr_block_height: # if the default 30 is larger than current block height, just default to block height
+                p_blocks = curr_block_height
         else:
-            try: data_points = int(data_points[0])
+            try: p_blocks = int(p_blocks[0])
             except: 
-                await ctx.reply(embed=self.bot.error_embed("Invalid input for data points!"))
+                await ctx.reply(embed=self.bot.error_embed("Invalid input! Input of how many past blocks to look back on must be a integer!"))
                 return
-            if data_points > self.bot.database.get_current_block()[0]: # Checks if range of data being requested would exceed how many blocks currently exist
+            if p_blocks > self.bot.database.get_current_block()[0]: # Checks if range of data being requested would exceed how many blocks currently exist
                 await ctx.reply(embed=self.bot.error_embed("Cannot access block difficulty data that far!"))
                 return
 
-        begin_index, difficulties_list = self.__make_plot(data_points) # TODO: use difficulty list data for more statistics in this embed
-        if defaulted: data_points -= 1
-
-        embed = discord.Embed(title=f"Past {data_points+1} Blocks' Difficulty", description=f"A plot of past {data_points+1} blocks' difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
+        begin_index, difficulties_list = self.__make_plot(p_blocks-1) # TODO: use difficulty list data for more statistics in this embed
+        
+        embed = discord.Embed(title=f"Past {p_blocks} Blocks' Difficulty", description=f"A plot of past {p_blocks} blocks' difficulties:", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
         file = discord.File("chart.png", filename="image.png")
         embed.set_image(url="attachment://image.png")
 

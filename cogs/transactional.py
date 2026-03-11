@@ -9,7 +9,7 @@ EMB_COLOUR = 0x000000
 
 class AirdropButton(discord.ui.View):
     # Interaction button for the airdrop
-    def __init__(self, bot, start_time, airdropper_id, timeout = 180):
+    def __init__(self, bot, start_time, airdropper_id, timeout=None):
         super().__init__(timeout=timeout)
         self.bot = bot
         self.start_time = start_time

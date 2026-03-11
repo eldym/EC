@@ -69,24 +69,10 @@ class Transactional(commands.Cog):
             await ctx.reply(embed=self.bot.error_embed("This user doesn't have an account!"))
             return
         
-        # confirm amount is a valid float with 6 decimal places
-        try: 
-            amount = round(float(amount), 6)
-        except:
-            if type(amount) is str:
-                if amount.lower() == "all" or amount.lower() == "max":
-                    amount = sender_data
-                    print(sender_data)
-                else:
-                    await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
-                    return
-            else:
-                await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
-                return
-        
-        # handle 0 / negative item amount
-        if amount < 0.000001:
-            await ctx.reply(embed=self.bot.error_embed(f"The amount you want to send must be **greater than or equal** to `0.000001` {self.display_currency}!"))
+        # confirm amount is a valid
+        amount, msg = self.check_valid_amt(amount, sender_data)
+        if not amount:
+            await ctx.reply(embed=self.bot.error_embed(msg))
             return
 
         # user doesn't have enough money
@@ -171,13 +157,11 @@ class Transactional(commands.Cog):
         else:
             user_bal = float(user_bal)
 
-        try: amt = round(float(amt), 6)
-        except: 
-            if amt == "all":
-                amt == user_bal
-            else:
-                await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
-                return
+        # confirm amount is a valid
+        amt, msg = self.check_valid_amt(amt, user_bal)
+        if not amt:
+            await ctx.reply(embed=self.bot.error_embed(msg))
+            return
 
         if amt <= 0:
             await ctx.reply(embed=self.bot.error_embed(f"The amount you want to send must be **greater than or equal** to `0.000001` {self.display_currency}!"))
@@ -228,6 +212,42 @@ class Transactional(commands.Cog):
                 else:
                     embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt:.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
             await ctx.send(embed=embed)
+    
+    def check_valid_amt(self, amount, sender_data):
+        # Takes a string "amount" and checks if its a valid amount of currency.
+        # confirm amount is a valid float with 6 decimal places
+        try: 
+            amount = round(float(amount), 6)
+        except:
+            if type(amount) is str:
+                amount = amount.lower()
+                if amount == "all" or amount == "max":
+                    amount = sender_data
+                else: 
+                    try: round(float(amount[:-1]), 6)
+                    except: 
+                        return False, "Invalid amount!"
+                    else:
+                        abb = None
+                        if amount.endswith("k"): # thousand
+                            abb = 1000
+                        elif amount.endswith("m"): # million
+                            abb = 1000000
+                        elif amount.endswith("b"): # billion
+                            abb = 1000000000
+
+                        if abb is not None:
+                            amount = round(float(amount[:-1]) * abb, 6)
+                        else:
+                            return False, "Invalid amount!"
+            else:
+                return False, "Invalid amount!"
+        
+        # handle 0 / negative item amount
+        if amount < 0.000001:
+            return False, f"The amount you want to send must be **greater than or equal** to `0.000001` {self.display_currency}!"
+        
+        return amount, None
         
     """@commands.command(aliases=['ts','trans'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)

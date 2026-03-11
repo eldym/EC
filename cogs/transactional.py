@@ -185,6 +185,7 @@ class Transactional(commands.Cog):
         
         if amt > user_bal:
             await ctx.reply(embed=self.bot.error_embed(f"You don't have enough {self.display_currency} to make run this airdrop!"))
+            return
         
         try: time_period = int(time_period)
         except: time_period = 60

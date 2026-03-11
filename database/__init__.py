@@ -501,13 +501,16 @@ class Database():
 
     def airdrop_cancel(self):
         # Redeposits all currency on hold from airdrop table
+        refund_list = []
         airdrops = self.get_all_aidrops()
 
         for i in airdrops: # i[0]: start_time, i[1]: uuid, i[2]: amount
             new_bal = self.get_user_bal(i[1]) + i[2]
             self.update_user_bal(i[1], new_bal)
+            refund_list.append([i[0], i[1], i[2]])
         
         self.delete_airdrops_data() # delete all data
+        return refund_list
         
     # CALCULATIONS
 

@@ -55,7 +55,11 @@ class ec_bot(commands.Bot):
         # Clears out airdrops table, refunds unfinished airdrops
         if not self.database.get_if_aidrops_empty():
             print("Incomplete airdrops detected. Refunding incomplete airdrops...")
-            self.database.airdrop_cancel()
+            refund_list = self.database.airdrop_cancel()
+            for refund in refund_list:
+                # refund[0]: start_time, refund[1]: uuid, refund[2]: amount
+                refundee = await self.fetch_user(refund[1])
+                await refundee.send(f"Hey <@{refundee.id}>!\nYour airdrop of {refund[2]} {self.config["display_currency"]} started at <t:{refund[0]}:f> was refunded due to the bot restarting.\nSorry for the inconvenience.")
 
         # Status background task
         self.bg_task = self.loop.create_task(self.status_loop())

@@ -73,8 +73,16 @@ class Transactional(commands.Cog):
         try: 
             amount = round(float(amount), 6)
         except:
-            await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
-            return
+            if type(amount) is str:
+                if amount.lower() == "all" or amount.lower() == "max":
+                    amount = sender_data
+                    print(sender_data)
+                else:
+                    await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
+                    return
+            else:
+                await ctx.reply(embed=self.bot.error_embed("Invalid amount!"))
+                return
         
         # handle 0 / negative item amount
         if amount < 0.000001:

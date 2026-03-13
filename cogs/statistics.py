@@ -83,7 +83,7 @@ class Statistics(commands.Cog):
 
     def __make_plot(self, amount_of_blocks):
         # Gets block data to make a plot
-        all_blocks = self.bot.database.get_blocks_from_current(amount_of_blocks)
+        all_blocks = self.bot.database.get_blocks_diff_from_current(amount_of_blocks)
         difficulties = []
 
         # Get beginning index
@@ -92,7 +92,7 @@ class Statistics(commands.Cog):
         
         # Appends appropriate data points
         while i < len(all_blocks):
-            difficulties.append(all_blocks[i][2])
+            difficulties.append(all_blocks[i][1])
             i += 1
 
         # Sends data points to make chart image file

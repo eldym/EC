@@ -202,10 +202,10 @@ class Database():
             blocks.append(block)
         return blocks
     
-    def get_blocks_from_current(self, lookback_amt):
+    def get_blocks_diff_from_current(self, lookback_amt):
         # Get specific block data given how many blocks before current
         cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM block WHERE block_number BETWEEN ((SELECT MAX(block_number) FROM block) - {lookback_amt}) AND (SELECT MAX(block_number) FROM block)")
+        cursor.execute(f"SELECT block_number, difficulty FROM block WHERE block_number BETWEEN ((SELECT MAX(block_number) FROM block) - {lookback_amt}) AND (SELECT MAX(block_number) FROM block)")
 
         blocks = []
         for block in cursor:

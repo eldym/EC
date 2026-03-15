@@ -45,15 +45,15 @@ class Statistics(commands.Cog):
         begin_index, difficulties_list = self.__make_plot(p_blocks-1) # TODO: use difficulty list data for more statistics in this embed
 
         embed = discord.Embed(title=f"Past {p_blocks} Blocks' Difficulty", description=f"A plot of past {p_blocks} blocks' difficulties has been generated!", color=EMB_COLOUR, timestamp=datetime.now()) #creates embed
-        embed.add_field(name="⬆️ Highest Diff. in Range", value=f"`{max(difficulties_list)}`", inline=True)
-        embed.add_field(name="⬇️ Lowest Diff. in Range", value=f"`{min(difficulties_list)}`", inline=True)
+        embed.add_field(name="⬆️ Highest Diff. in Range", value=f"`{max(difficulties_list)} @ Block #{difficulties_list.index(max(difficulties_list)) + begin_index}`", inline=True)
+        embed.add_field(name="⬇️ Lowest Diff. in Range", value=f"`{min(difficulties_list)} @ Block #{difficulties_list.index(min(difficulties_list)) + begin_index}`", inline=True)
 
         difference = difficulties_list[-1] - difficulties_list[0] # current diff - n blocks ago diff
         if difference > 0: emoji_res = "⬆️", "🔴"  
         elif difference < 0: emoji_res = "⬇️", "🟢"
         else: emoji_res = "⏺️", "🟡"
 
-        embed.add_field(name=f"{emoji_res[1]} Difficulty Change Since {p_blocks} Blocks Ago", value=f"`{emoji_res[0]} {difference}`", inline=False)
+        embed.add_field(name=f"{emoji_res[1]} Difficulty Change Since Block #{begin_index} ({p_blocks} Blocks Ago)", value=f"`{emoji_res[0]} {difference}`", inline=False)
         file = discord.File("chart.png", filename="image.png")
         embed.set_image(url="attachment://image.png")
 

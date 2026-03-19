@@ -175,6 +175,9 @@ class Transactional(commands.Cog):
         except: time_period = 60
         if time_period > 86400: # limits time periods to only 1 day max
             time_period = 86400
+        elif time_period < 1:
+            await ctx.reply(embed=self.bot.error_embed(f"The inputted time for your airdrop is too short!\nPlease supply a time period **greater** than `1 second`."))
+            return
 
         # timed confirmation
         to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt:.6f} {self.display_currency}** for **{time_period} second(s)**?\n**NOTICE:** if the amount paid out is not greater than or equal to 0.000001 {self.display_currency} per participant, the airdrop may be terminated on completion!\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")

@@ -27,6 +27,9 @@ def get_config():
     with open('config.json') as f:
         return json.load(f)
     
+def get_time():
+    return str(datetime.now().time())[:8]
+    
 class ec_bot(commands.Bot):
     def __init__(self):
         # bot variables
@@ -38,9 +41,10 @@ class ec_bot(commands.Bot):
     
     async def on_ready(self):
         # Starts up the bot!
-        print('Waking up!')
-        print(f"EC is online! :3\nLogged in as:\nUsername: \"{self.user.name}\"\nID: {self.user.id}")
-
+        print(f"[{get_time()}]: EC is online! 🦊")
+        print(f"            Username: {self.user.name}")
+        print(f"            Bot ID  : {self.user.id}")
+        
     async def setup_hook(self) -> None:
         # Sets it all up
         for extension in self.initial_extensions:
@@ -88,11 +92,11 @@ class ec_bot(commands.Bot):
         while not self.is_closed():
             ids = self.database.get_auto_miners_id()
             if len(ids) == 0:
-                print("Detected no autominers! Sleeping for 10 seconds...")
+                print(f"[{get_time()}]: Detected no autominers! Sleeping for 10 seconds...")
                 await asyncio.sleep(10)
                 continue
             random.shuffle(ids) # ensures one miner isn't always first, as this game is a first come first serve game
-            print(f"Automine Looped\nShuffled IDs:\n{ids}")
+            print(f"[{get_time()}]: Automine Task Looped | Shuffled IDs: {ids}")
 
             try:
                 for id in ids:

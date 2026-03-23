@@ -1,3 +1,4 @@
+from datetime import datetime
 import mysql.connector
 import random
 import time
@@ -544,19 +545,22 @@ class Database():
             obsMineTime = int(time.time()) - look_back_blocks[0][4]
 
             # Print calculations to console for checking
-            print('Block Completed! Here are the block statistics:')
-            print(f'Averaged time (s):',obsMineTime)
-            print(f'Expected time (s):',TARGET_TIME*n_blocks)
+            print(f'[{str(datetime.now().time())[:8]}]: Block {curr[0]} was broken!\n')
+            print('STATISTICS')
+            print(f'Averaged time (s):', obsMineTime)
+            print(f'Expected time (s):', TARGET_TIME*n_blocks)
             print(f'Time deviation from expected: ×{(TARGET_TIME*n_blocks)/obsMineTime:.4f}')
-            print(f'Time deviation percentage: {(TARGET_TIME*n_blocks)/obsMineTime*100:.4f}%')
-            print(f'Averaged difficulty: {diff_average:.2f}')
-            adj_diff = int(diff_average*((TARGET_TIME*n_blocks)/obsMineTime))
-            print(f'Adjusted difficulty: {adj_diff}')
+            print(f'Time deviation percentage:     {(TARGET_TIME*n_blocks)/obsMineTime*100:.4f}%')
+            
             print()
-
+            print('DIFFICULTY CALCULATION')
+            adj_diff = int(diff_average*((TARGET_TIME*n_blocks)/obsMineTime))
+            print(f'Averaged difficulty:         {diff_average}')
+            print(f'Planned adjusted difficulty: {adj_diff}')
+            
             # If difficulty is below the starting difficulty, set difficulty as it
             if adj_diff < START_DIFF:
-                print(f'Difficulty too low. Defaulting to start difficulty: {START_DIFF}\n')
+                print(f'Calculated planned difficulty is too low. Defaulting to start difficulty: {START_DIFF}\n')
                 return START_DIFF
             # Smooths out difficulty increase to prevent extreme difficulty change shock
             if ((TARGET_TIME*n_blocks)/obsMineTime) > 2: print('Difficulty multiplied by 2\n'); return curr[2]*(2)

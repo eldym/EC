@@ -87,7 +87,7 @@ class Mining(commands.Cog):
         if self.bot.database.get_auto_miner(ctx.author.id):
             dead = self.autominer_died_embed(ctx.author.id)
         result = self.bot.database.update_user_automining_status(ctx.author.id)
-        embed=discord.Embed(title=f"You have switched to {"Auto-Mining" if result else "Manual Mining"}!", color=EMB_COLOUR) # Replies to user of result
+        embed=discord.Embed(title=f"You have switched to {"Auto Mining" if result else "Manual Mining"}!", color=EMB_COLOUR) # Replies to user of result
         await ctx.reply(embed=embed)
         try: await ctx.reply(embed=dead)
         except: pass
@@ -96,8 +96,8 @@ class Mining(commands.Cog):
         # Generates autominer info embed
         embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=self.emb_thumbnail_link)
-        embed.add_field(name="✅ Session Hashes", value=f"`{user_automine_status[2]}` Hashes")
-        embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]}` Blocks")
+        embed.add_field(name="✅ Session Guesses", value=f"`{user_automine_status[2]}` Guesses")
+        embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]}` Block{"s" if user_automine_status[1] != 1 else ""}")
         embed.add_field(name="💸 Session Payout", value=f"`{user_automine_status[3]}` {self.display_currency}", inline=False)
         embed.add_field(name="⏱️ Session Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
 
@@ -109,8 +109,8 @@ class Mining(commands.Cog):
         user_automine_status = self.bot.database.get_auto_miner(uuid)
         embed=discord.Embed(title=f"Your autominer has stopped!", description="Your autominer statistics:", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=self.emb_thumbnail_link)
-        embed.add_field(name="✅ Total Hashes Submitted", value=f"`{user_automine_status[2]}` Hashes")
-        embed.add_field(name="⛏️ Total Blocks Broken", value=f"`{user_automine_status[1]}` Blocks")
+        embed.add_field(name="✅ Total Guesses Made", value=f"`{user_automine_status[2]}` Guesses")
+        embed.add_field(name="⛏️ Total Blocks Broken", value=f"`{user_automine_status[1]}` Block{"s" if user_automine_status[1] != 1 else ""}")
         embed.add_field(name="💸 End Session Payout", value=f"`{user_automine_status[3]}` {self.display_currency}", inline=False)
         embed.add_field(name="⏱️ Automining Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
 

@@ -98,7 +98,7 @@ class ec_bot(commands.Bot):
                 for id in ids:
                     reciept = None
                     if random.random() <= 2/3: # 2/3 chance to submit share
-                        try: _, reciept = self.database.mine(id)
+                        try: _, reciept, curr_block = self.database.mine(id)
                         except Exception as e:print(e)
                         if random.random() <= 1/300: # 1/300 to have autominer die
                             user = await self.fetch_user(id)
@@ -114,7 +114,6 @@ class ec_bot(commands.Bot):
                         print(reciept)
                         user_data = self.database.get_user(id)
                         mining_cog = self.get_cog('Mining')
-                        curr_block = self.database.get_current_block_relevant_md()
                         await mining_cog.block_broke_embed(user_data, reciept, curr_block)
             except Exception as e: print("Exception in Automine Loop:", e)
             # Performs automing cycle every 4 seconds

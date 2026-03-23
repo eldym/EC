@@ -463,7 +463,7 @@ class Database():
         if auto_status is not None:
             self.increment_user_automine_session_hashes(uuid)
 
-        return guess, reciept
+        return guess, reciept, block
     
     def airdrop_start(self, uuid, amount, start_time):
         # Protects currency by putting a hold on currency for things like airdrops

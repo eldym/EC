@@ -193,10 +193,10 @@ class Database():
         for block in cursor: pass
         return block
     
-    def get_blocks_between(self, start, end):
+    def get_blocks_diff_between(self, start, end):
         # Get specific block data given a start and end block number
         cursor = self.db.cursor()
-        cursor.execute(f"SELECT * FROM block WHERE block_number BETWEEN {start} AND {end}")
+        cursor.execute(f"SELECT block_number, difficulty FROM block WHERE block_number BETWEEN {start} AND {end}")
 
         blocks = []
         for block in cursor:

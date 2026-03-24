@@ -17,7 +17,7 @@ class Blocks(commands.Cog):
         self.display_currency = bot.config["display_currency"]
         self.emb_thumbnail_link = bot.config["emb_thumbnail_link"]
 
-    @commands.command(aliases=['bi', 'blockinfo'])
+    @commands.command(aliases=['bi', 'bl', 'blockinfo'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def block(self, ctx, *block_number):
         """Gives block data given a (optional) block number."""

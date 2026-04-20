@@ -74,7 +74,7 @@ class Mining(commands.Cog):
         embed.add_field(name="⛏️ Your Guess", value=f"`{guess}`", inline=False)
         await ctx.reply(embed=embed)
 
-    @commands.command(aliases=['am', 'auto'])
+    @commands.command(aliases=['a', 'am', 'auto'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.user)
     async def automine(self, ctx):
         """Switches the automining status."""

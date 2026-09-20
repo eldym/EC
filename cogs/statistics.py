@@ -20,7 +20,7 @@ class Statistics(commands.Cog):
         self.bot = bot
         self.display_currency = bot.config["display_currency"]
 
-    @commands.command(aliases=['pl', 'PL', 'plt'])
+    @commands.command(aliases=['plt', 'PLT'])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def plot(self, ctx, *p_blocks):
         """Generates a plot of past block difficulties.\nIf no arguments are provided, default is 30.\nFor 1 argument - # of past blocks to see the difficulties of.\nFor 2 arguments - block difficulties between range."""

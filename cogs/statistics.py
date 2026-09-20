@@ -1,3 +1,4 @@
+import os
 import discord
 import matplotlib.pyplot as plt
 from discord.ext import commands
@@ -20,7 +21,7 @@ class Statistics(commands.Cog):
         self.display_currency = bot.config["display_currency"]
 
     @commands.command()
-    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def plot(self, ctx, *p_blocks):
         """Generates a plot of past block difficulties.\nIf no arguments are provided, default is 30.\nFor 1 argument - # of past blocks to see the difficulties of.\nFor 2 arguments - block difficulties between range."""
         args_count = len(p_blocks)
@@ -35,9 +36,10 @@ class Statistics(commands.Cog):
                 await ctx.reply(embed=self.bot.error_embed("Cannot access block difficulty data that far!"))
                 return
             if p_blocks <= 0:
-                await ctx.reply(embed=self.bot.error_embed("Cannot access block difficulty data of less than 0 blocks in range!"))
+                await ctx.reply(embed=self.bot.error_embed("Cannot access block difficulty data of less than or equal to 0 blocks!"))
                 return
-            begin_index, difficulties_list = self.__make_plot(p_blocks-1)
+            to_edit = await ctx.reply(f"Generating plot for given data range...")
+            begin_index, difficulties_list = self.__make_plot(ctx.author.id, p_blocks-1)
         elif args_count == 2:
             try: 
                 begin_block = int(p_blocks[0])
@@ -55,13 +57,15 @@ class Statistics(commands.Cog):
             if end_block >= curr_num or begin_block >= curr_num:
                 await ctx.reply(embed=self.bot.error_embed("Cannot access block difficulty data that far!"))
                 return
-            begin_index, difficulties_list = self.__make_plot(begin_block, end_block)
+            to_edit = await ctx.reply(f"Generating plot for given data range...")
+            begin_index, difficulties_list = self.__make_plot(ctx.author.id, begin_block, end_block)
         else:
-            p_blocks = 30
+            p_blocks = 100
             curr_block_height = self.bot.database.get_current_block()[0]
-            if p_blocks > curr_block_height: # if the default 30 is larger than current block height, just default to block height
+            if p_blocks > curr_block_height: # if the default 100 is larger than current block height, just default to block height
                 p_blocks = curr_block_height
-            begin_index, difficulties_list = self.__make_plot(p_blocks-1)
+            to_edit = await ctx.reply(f"Generating plot for the past {p_blocks} blocks...")
+            begin_index, difficulties_list = self.__make_plot(ctx.author.id, p_blocks-1)
         
         difference = difficulties_list[-1] - difficulties_list[0] # current diff - n blocks ago diff
         if difference > 0: emoji_res = "⬆️", "🔴"  
@@ -78,13 +82,14 @@ class Statistics(commands.Cog):
             embed.add_field(name="⬆️ Highest Diff. in Range", value=f"`{max(difficulties_list)} @ Block #{difficulties_list.index(max(difficulties_list)) + begin_index}`", inline=True)
             embed.add_field(name="⬇️ Lowest Diff. in Range", value=f"`{min(difficulties_list)} @ Block #{difficulties_list.index(min(difficulties_list)) + begin_index}`", inline=True)
             embed.add_field(name=f"{emoji_res[1]} Difficulty Change Between #{p_blocks[0]} to #{p_blocks[1]}", value=f"`{emoji_res[0]} {difference}`", inline=False)
-            
-        file = discord.File("chart.png", filename="image.png")
-        embed.set_image(url="attachment://image.png")
-
+        
+        file = discord.File(f"chart_{ctx.author.id}.png", filename=f"chart_{ctx.author.id}.png")
+        embed.set_image(url=f"attachment://chart_{ctx.author.id}.png")
+        await to_edit.delete()
         await ctx.reply(file=file, embed=embed)
+        os.remove(f"chart_{ctx.author.id}.png") # delete generated chart after we're done
     
-    def __difficulties_plot(self, difficulties, begin_index):
+    def __difficulties_plot(self, difficulties, begin_index, author_id):
         # Creates x axis tickers
         pos = list(range(len(difficulties)))
         new_tickers = list(range(begin_index, begin_index+len(difficulties)))
@@ -103,10 +108,10 @@ class Statistics(commands.Cog):
         plt.locator_params(axis='x', nbins=15)
 
         # Saves plotted chart as a png file
-        plt.savefig('chart.png', bbox_inches='tight')
+        plt.savefig(f'chart_{author_id}.png', bbox_inches='tight')
         plt.close() # Resets plt
 
-    def __make_plot(self, begin_block, end_block=None):
+    def __make_plot(self, author_id, begin_block, end_block=None):
         # Gets block data to make a plot
         if end_block is None:
             all_blocks = self.bot.database.get_blocks_diff_from_current(begin_block)
@@ -122,7 +127,7 @@ class Statistics(commands.Cog):
             i += 1
 
         # Sends data points to make chart image file
-        self.__difficulties_plot(difficulties, begin_index)
+        self.__difficulties_plot(difficulties, begin_index, author_id)
 
         return begin_index, difficulties
     

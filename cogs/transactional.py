@@ -41,7 +41,7 @@ class Transactional(commands.Cog):
         self.display_currency = bot.config["display_currency"]
         self.emb_thumbnail_link = bot.config["emb_thumbnail_link"]
 
-    @commands.command(aliases=['p', 'pay', 'give'])
+    @commands.command(aliases=['p', 'P', 'pay', 'give'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def send(self, ctx, reciever, amount):
         """Send a reciever an amount of currency."""
@@ -109,7 +109,7 @@ class Transactional(commands.Cog):
                 # If there is an error, prints out error to user
                 await ctx.reply(f"`Error!`\n{reciept}")
 
-    @commands.command(aliases=['t', 'tran', 'log', 'reciept'])
+    @commands.command(aliases=['t', 'T', 'tran', 'log', 'reciept'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def transaction(self, ctx, id):
         """Displays transaction information given an txn ID."""
@@ -146,7 +146,7 @@ class Transactional(commands.Cog):
         # If transaction doesn't exist, throw error embed
         else: await ctx.reply(embed=self.bot.error_nodata())
 
-    @commands.command(aliases=['ad', 'drop'])
+    @commands.command(aliases=['ad', 'AD', 'drop'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def airdrop(self, ctx, amt, time_period=60):
         """Creates a "drop" where any users interacting with the message within a time period recieve an amount of currency. This amount is split amongst participants."""

@@ -30,7 +30,7 @@ class User(commands.Cog):
         else:
             await ctx.send(embed=self.bot.error_embed("You already have an account!"))
     
-    @commands.command(aliases=['b','bal','bank','wallet'])
+    @commands.command(aliases=['b','B','bal','bank','wallet'])
     @commands.cooldown(1, COOLDOWN, commands.BucketType.channel)
     async def balance(self, ctx, *member):
         """Shows account balance."""

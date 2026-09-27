@@ -105,13 +105,16 @@ class ec_bot(commands.Bot):
                         try: _, reciept, curr_block = self.database.mine(id)
                         except Exception as e:print(e)
                         if random.random() <= 1/300: # 1/300 to have autominer die
-                            user = await self.fetch_user(id)
-                            await user.send(f"Uh oh! Your autominer has broken! Run `{self.config["prefixes"][0]}a` to turn it back on.")
                             mining_cog = self.get_cog('Mining')
                             embed = mining_cog.autominer_died_embed(id)
-                            await user.send(embed=embed)
                             self.database.update_user_automining_status(id)
-
+                            user = await self.fetch_user(id)
+                            try: 
+                                await user.send(f"Uh oh! Your autominer has broken! Run `{self.config["prefixes"][0]}a` to turn it back on.")
+                            except Exception as e:
+                                print(f"[{get_time()}]: Error sending out automine broken message: {e}")
+                            else:
+                                await user.send(embed=embed)
                     if reciept is None: # no results, just continue
                         continue
                     else: # block was broken

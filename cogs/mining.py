@@ -52,9 +52,9 @@ class Mining(commands.Cog):
 
                 embed=discord.Embed(title="Submitted share of work to pool!", description=f"Your contribution to block #{curr_block[0]}\nhas been logged!", color=EMB_COLOUR, timestamp=datetime.now())
                 embed.set_thumbnail(url=self.emb_thumbnail_link)
-                embed.add_field(name="✅ Shares You Submitted", value=f"`{user_pool_shares}` Share{"s" if user_pool_shares != 1 else ""}", inline=False)
-                embed.add_field(name="🌎 Global Shares Submitted", value=f"`{share_sum}` Share{"s" if share_sum != 1 else ""}", inline=False)
-                embed.add_field(name="💵 Estimated Reward", value=f"`{curr_block[1]*(user_pool_shares/share_sum):.6f}` {self.display_currency}", inline=False)
+                embed.add_field(name="✅ Shares You Submitted", value=f"`{user_pool_shares:,}` Share{"s" if user_pool_shares != 1 else ""}", inline=False)
+                embed.add_field(name="🌎 Global Shares Submitted", value=f"`{share_sum:,}` Share{"s" if share_sum != 1 else ""}", inline=False)
+                embed.add_field(name="💵 Estimated Reward", value=f"`{curr_block[1]*(user_pool_shares/share_sum):,.6f}` {self.display_currency}", inline=False)
             # Solo attempt
             else:
                 embed=discord.Embed(title="Guess was unsuccessful!", description="Please try again!", color=EMB_COLOUR, timestamp=datetime.now())
@@ -96,9 +96,9 @@ class Mining(commands.Cog):
         # Generates autominer info embed
         embed=discord.Embed(title=f"You are automining block #{curr_block[0]}!", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=self.emb_thumbnail_link)
-        embed.add_field(name="✅ Session Guesses", value=f"`{user_automine_status[2]}` Guesses")
-        embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]}` Block{"s" if user_automine_status[1] != 1 else ""}")
-        embed.add_field(name="💸 Session Payout", value=f"`{user_automine_status[3]}` {self.display_currency}", inline=False)
+        embed.add_field(name="✅ Session Guesses", value=f"`{user_automine_status[2]:,}` Guesses")
+        embed.add_field(name="⛏️ Session Blocks Broken", value=f"`{user_automine_status[1]:,}` Block{"s" if user_automine_status[1] != 1 else ""}")
+        embed.add_field(name="💸 Session Payout", value=f"`{user_automine_status[3]:,}` {self.display_currency}", inline=False)
         embed.add_field(name="⏱️ Session Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
 
         # Return built embed
@@ -109,9 +109,9 @@ class Mining(commands.Cog):
         user_automine_status = self.bot.database.get_auto_miner(uuid)
         embed=discord.Embed(title=f"Your autominer has stopped!", description="Your autominer statistics:", color=EMB_COLOUR, timestamp=datetime.now())
         embed.set_thumbnail(url=self.emb_thumbnail_link)
-        embed.add_field(name="✅ Total Guesses Made", value=f"`{user_automine_status[2]}` Guesses")
-        embed.add_field(name="⛏️ Total Blocks Broken", value=f"`{user_automine_status[1]}` Block{"s" if user_automine_status[1] != 1 else ""}")
-        embed.add_field(name="💸 End Session Payout", value=f"`{user_automine_status[3]}` {self.display_currency}", inline=False)
+        embed.add_field(name="✅ Total Guesses Made", value=f"`{user_automine_status[2]:,}` Guesses")
+        embed.add_field(name="⛏️ Total Blocks Broken", value=f"`{user_automine_status[1]:,}` Block{"s" if user_automine_status[1] != 1 else ""}")
+        embed.add_field(name="💸 End Session Payout", value=f"`{user_automine_status[3]:,}` {self.display_currency}", inline=False)
         embed.add_field(name="⏱️ Automining Start Time", value=f"<t:{user_automine_status[4]}:f>", inline=False)
 
         return embed
@@ -156,10 +156,10 @@ class Mining(commands.Cog):
 
                 embed=discord.Embed(title=f"Pool Statistics", description=f"These are the current pool\nstatistics for block #{curr_block[0]}.", color=EMB_COLOUR, timestamp=datetime.now())
                 embed.set_thumbnail(url=self.emb_thumbnail_link)
-                embed.add_field(name="✅ Shares You Submitted", value=f"`{user_pool_shares}` Shares", inline=False)
+                embed.add_field(name="✅ Shares You Submitted", value=f"`{user_pool_shares:,}` Shares", inline=False)
                 embed.add_field(name="🌎 Global Shares Submitted", value=f"`{share_sum}` Shares")
                 if user_pool_shares != 0:
-                    embed.add_field(name="💵 Estimated Pool Reward", value=f"`{curr_block[1]*(user_pool_shares/share_sum):.6f}` {self.display_currency}", inline=False)
+                    embed.add_field(name="💵 Estimated Pool Reward", value=f"`{curr_block[1]*(user_pool_shares/share_sum):,.6f}` {self.display_currency}", inline=False)
                 await ctx.reply(embed=embed)
             else: await ctx.reply(embed=self.bot.error_embed(f"You aren't pool mining! Run `{self.default_prefix}switch` to switch to pool mining."))
         else: await ctx.reply(embed=self.bot.error_noacc())

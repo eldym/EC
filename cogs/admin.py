@@ -20,9 +20,10 @@ class Admin(commands.Cog):
         """ADMIN ONLY: Adds balance to a specific user."""
         if ctx.author.id == self.bot.config["admin_id"]:
             uuid = ''.join(uuid).strip('<@>')
+            amount = amount.strip(",", "")
             self.bot.database.update_user_bal(uuid, float(self.bot.database.get_user(uuid)[1]) + float(amount))
             print("Updated user", uuid, "by", amount)
-            await ctx.reply(f'Updated user funds by: {amount} {self.bot.config["display_currency"]}')
+            await ctx.reply(f'Updated user funds by: {amount:,} {self.bot.config["display_currency"]}')
 
     @commands.command(aliases=['cu'])
     async def create_user(self, ctx, uuid):

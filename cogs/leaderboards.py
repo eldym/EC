@@ -98,7 +98,7 @@ class Leaderboards(commands.Cog):
             start_index += 1
             for i in lb_data:
                 username = i[2]
-                embed.add_field(name=f"{start_index}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[1]} {self.display_currency if lb_type == "Balance" else "block(s)"}", inline=False)
+                embed.add_field(name=f"{start_index}. {username.replace('_', '\\_')} (`{i[0]}`)", value=f"{i[1]:,} {self.display_currency if lb_type == "Balance" else "block(s)"}", inline=False)
                 start_index += 1
             
             # Shows page number

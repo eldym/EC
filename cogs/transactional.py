@@ -81,7 +81,7 @@ class Transactional(commands.Cog):
             return
 
         # timed transaction confirmation
-        to_edit = await ctx.reply(f"Are you sure you want to send **{reciever_data[4]} {amount:.6f} {self.display_currency}**?\nPlease say \'yes\' or \'y\' within 15 seconds to complete this transaction.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
+        to_edit = await ctx.reply(f"Are you sure you want to send **{reciever_data[4]} {amount:,.6f} {self.display_currency}**?\nPlease say \'yes\' or \'y\' within 15 seconds to complete this transaction.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
 
         # checking function
         def check(m):
@@ -95,7 +95,7 @@ class Transactional(commands.Cog):
             reciept = self.bot.database.transaction(ctx.author.id, reciever_id, amount)
             if type(reciept) is tuple:
                 # Embed building
-                embed=discord.Embed(title="Transaction Success!", description=f"**{amount:.6f} {self.display_currency}** was sent to **{reciever_data[4]}**.", color=EMB_COLOUR, timestamp=datetime.now())
+                embed=discord.Embed(title="Transaction Success!", description=f"**{amount:,.6f} {self.display_currency}** was sent to **{reciever_data[4]}**.", color=EMB_COLOUR, timestamp=datetime.now())
                 embed.add_field(name="🧾 Transaction ID", value=f"`{reciept[0]}`", inline=False)
                 embed.add_field(name="🛃 Fee", value=f"`{reciept[4]}` {self.display_currency}", inline=False)
                 embed.add_field(name="⏰ Recorded Timestamp", value=f"`{reciept[5]}`", inline=False)
@@ -104,7 +104,7 @@ class Transactional(commands.Cog):
 
                 # Notify reciever
                 reciever_user = await ctx.bot.fetch_user(reciever_id)
-                await reciever_user.send(f"Hey <@{reciever_id}>! You recieved {amount:.6f} {self.display_currency} from **{ctx.author.name}**!\nTransaction ID: `{reciept[0]}`\n-# You can view this transaction using `!transaction {reciept[0]}`")
+                await reciever_user.send(f"Hey <@{reciever_id}>! You recieved {amount:,.6f} {self.display_currency} from **{ctx.author.name}**!\nTransaction ID: `{reciept[0]}`\n-# You can view this transaction using `!transaction {reciept[0]}`")
             else:
                 # If there is an error, prints out error to user
                 await ctx.reply(f"`Error!`\n{reciept}")
@@ -180,18 +180,18 @@ class Transactional(commands.Cog):
             return
 
         # timed confirmation
-        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt:.6f} {self.display_currency}** for **{time_period} second(s)**?\n**NOTICE:** if the amount paid out is not greater than or equal to 0.000001 {self.display_currency} per participant, the airdrop may be terminated on completion!\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
+        to_edit = await ctx.reply(f"Are you sure you want to create an airdrop of **{amt:,.6f} {self.display_currency}** for **{time_period} second(s)**?\n**NOTICE:** if the amount paid out is not greater than or equal to 0.000001 {self.display_currency} per participant, the airdrop may be terminated on completion!\nPlease say \'yes\' or \'y\' within 15 seconds to confirm.\n-# If this is *not* what you intended to do, wait for the timer to complete and your transaction will be canceled.")
         def check(m):
             return (m.content.lower() == 'yes' or m.content.lower() == 'y') and m.channel == ctx.channel and m.author.id == ctx.author.id
         try: msg = await self.bot.wait_for('message', check=check, timeout=15.0) # set to 30 seconds
         except asyncio.TimeoutError: await to_edit.edit(content="The transaction has timed out and was canceled.") # if timer runs out
         else: # If confirmation is made
-            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt:.6f} {self.display_currency} to complete in {time_period} second(s)...")
+            await to_edit.edit(content=f"**Confirmed!**\nGenerating airdrop of {amt:,.6f} {self.display_currency} to complete in {time_period} second(s)...")
 
             # temp hold user's money
             start_time = int(time.time())
             self.bot.database.airdrop_start(ctx.author.id, amt, start_time)
-            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt:.6f} {self.display_currency}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
+            embed=discord.Embed(title=f"Airdrop started by {ctx.author.name}!", description=f"**{amt:,.6f} {self.display_currency}** is up for grabs!\nEnds in <t:{start_time+time_period}:R>", color=EMB_COLOUR, timestamp=datetime.now())
             to_edit_embed = await ctx.send(embed=embed, view=AirdropButton(self.bot, start_time, ctx.author.id))
             await asyncio.sleep(2)
             await to_edit.delete()
@@ -208,18 +208,19 @@ class Transactional(commands.Cog):
                         else: ppl += f"and <@{uuids[i]}>"
                         i += 1
 
-                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt:.6f} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
+                embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"**{amt:,.6f} {self.display_currency}** was collected by {ppl}!", color=EMB_COLOUR, timestamp=datetime.now())
             else:
                 if uuids is not None:
-                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"The airdrop amount was too low to distribute!\n(**{amt:.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"The airdrop amount was too low to distribute!\n(**{amt:,.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
                 else:
-                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt:.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
+                    embed=discord.Embed(title=f"{ctx.author.name}'s airdrop has ended!", description=f"No one participated in the airdrop!\n(**{amt:,.6f} {self.display_currency}** was refunded.)", color=EMB_COLOUR, timestamp=datetime.now())
             await ctx.send(embed=embed)
     
     def check_valid_amt(self, amount, sender_data):
         # Takes a string "amount" and checks if its a valid amount of currency.
         # confirm amount is a valid float with 6 decimal places
         try: 
+            amount = amount.replace(",", "")
             amount = round(float(amount), 6)
         except:
             if type(amount) is str:

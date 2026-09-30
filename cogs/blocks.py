@@ -38,7 +38,7 @@ class Blocks(commands.Cog):
             # block data: block_data[0]: block number, block_data[1]: block reward, block_data[2]: difficulty, block_data[3]: difficulty threshold, block_data[4]: block creation time (in unix)
             embed=discord.Embed(title=f"Block #{block_data[0]} Information", description=f"{"*Current block!*" if block_data == self.bot.database.get_current_block() else ""}", color=EMB_COLOUR)
             embed.set_thumbnail(url=self.emb_thumbnail_link)
-            embed.add_field(name="💵 Reward Amount", value=f"`{block_data[1]:.6f}` {self.display_currency}", inline=False)
+            embed.add_field(name="💵 Reward Amount", value=f"`{block_data[1]:,.6f}` {self.display_currency}", inline=False)
             embed.add_field(name="⚒️ Difficulty", value=f"`{block_data[2]}`", inline=False)
             if block_data == self.bot.database.get_current_block(): embed.add_field(name="🌎 Current Pool Effort", value=f"{self.bot.database.get_pool_share_sum()[0]} Shares", inline=False)
             embed.add_field(name="📊 Diff. Threshold", value=f"`{block_data[3]}`", inline=False)

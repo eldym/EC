@@ -53,7 +53,7 @@ class User(commands.Cog):
                 embed=discord.Embed(title="Your Balance" if defaulted or member.id == ctx.author.id else f"{member.name}\'s Balance", color=EMB_COLOUR, timestamp=datetime.now())
                 try: embed.set_thumbnail(url=member.avatar.url)
                 except: embed.set_thumbnail(url=f'https://cdn.discordapp.com/embed/avatars/{random.randint(0,5)}.png')    
-                embed.add_field(name="💵 Currency", value=f"{user_data[1]} {self.display_currency}", inline=False)
+                embed.add_field(name="💵 Currency", value=f"{user_data[1]:,} {self.display_currency}", inline=False)
                 embed.add_field(name="☑️ Blocks", value=f"{user_data[2]:,} block{'s' if user_data[2] != 1 else ""} broken", inline=False)
                 embed.add_field(name="🚤 Pooling", value=f"{"TRUE" if user_data[3] == 1 else "FALSE"}", inline=False)
                 embed.set_footer(text="Bot made with ❤️ by eld_!")

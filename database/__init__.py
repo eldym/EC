@@ -375,6 +375,16 @@ class Database():
             airdrops.append(airdrop)
         return airdrops
     
+    def get_all_aidrops_amount(self):
+        # Gets the total amount of currency in airdrops
+        cursor = self.db.cursor()
+        cursor.execute("SELECT amount FROM airdrops")
+
+        airdrops = []
+        for airdrop in cursor: 
+            airdrops.append(airdrop[0])
+        return sum(airdrops)
+    
     def get_if_aidrops_empty(self):
         # Returns True if empty, False if not
         cursor = self.db.cursor()

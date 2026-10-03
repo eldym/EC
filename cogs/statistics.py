@@ -139,7 +139,12 @@ class Statistics(commands.Cog):
     @commands.command(aliases=['s'])
     async def supply(self, ctx):
         """Current supply of currency."""
-        await ctx.reply(f"There is currently {self.bot.database.get_supply()[0]:,} {self.display_currency} in supply.")
-    
+        supply = self.bot.database.get_supply()[0] + self.bot.database.get_all_aidrops_amount()
+        user_bal = self.bot.database.get_user_bal(ctx.author.id)
+        embed=discord.Embed(title="Currency Supply", color=EMB_COLOUR, timestamp=datetime.now())
+        embed.add_field(name="💵 Current EC Supply", value=f"{supply:,} {self.display_currency}", inline=False)
+        embed.add_field(name="🥧 You Own", value=f"{user_bal/supply*100:.2f}% of Supply", inline=False)
+        await ctx.reply(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(Statistics(bot))

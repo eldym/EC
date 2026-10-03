@@ -58,7 +58,7 @@ class ec_bot(commands.Bot):
 
         # Clears out airdrops table, refunds unfinished airdrops
         if not self.database.get_if_aidrops_empty():
-            print("Incomplete airdrops detected. Refunding incomplete airdrops...")
+            print(f"[{get_time()}]: Incomplete airdrops detected. Refunding incomplete airdrops...")
             refund_list = self.database.airdrop_cancel()
             for refund in refund_list:
                 # refund[0]: start_time, refund[1]: uuid, refund[2]: amount

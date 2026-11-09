@@ -101,10 +101,10 @@ class ec_bot(commands.Bot):
             try:
                 for id in ids:
                     reciept = None
-                    if random.random() <= 2/3: # 2/3 chance to submit share
+                    if random.random() <= 3/4: # 3/4 chance to submit share
                         try: _, reciept, curr_block = self.database.mine(id)
                         except Exception as e:print(e)
-                        if random.random() <= 1/300: # 1/300 to have autominer die
+                        if random.random() <= 1/1000: # 1/1000 to have autominer die
                             mining_cog = self.get_cog('Mining')
                             embed = mining_cog.autominer_died_embed(id)
                             self.database.update_user_automining_status(id)
